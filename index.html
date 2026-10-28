@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5f4f0">
+<title>블럭 주간 시간표</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --site-primary: #344d43;
+  --site-on-primary: #ffffff;
+  --site-secondary: #e7ece6;
+  --site-on-secondary: #24352c;
+  --site-background: #f5f4f0;
+  --site-on-background: #20251f;
+  --site-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  --surface: light-dark(#ffffff, #20231f);
+  --surface-soft: light-dark(#f0f1ec, #292e29);
+  --text: light-dark(#20251f, #f0f1eb);
+  --muted: light-dark(#777d74, #a8afa5);
+  --line: light-dark(#e1e4dc, #414740);
+  --accent: var(--site-primary);
+  --accent-ink: var(--site-on-primary);
+  --radius: calc(16px * var(--site-radius-scale));
+  --pad: calc(16px * var(--site-spacing-scale));
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--site-background); color: var(--site-on-background); font-family: var(--site-font-body); }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, .slot:focus-visible { outline: 3px solid #8aa8ff; outline-offset: 2px; }
+#app { min-height: 100vh; width: 100%; background-color: var(--site-background); color: var(--site-on-background); }
+.topbar { background: var(--site-primary); color: var(--site-on-primary); padding: 22px clamp(16px, 3vw, 34px); display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.brand { display:flex; align-items:center; gap:12px; }
+.brand-mark { width:40px; height:40px; display:grid; grid-template-columns:repeat(2,1fr); gap:4px; padding:6px; border:1px solid #ffffff66; border-radius:12px; }
+.brand-mark i { display:block; border-radius:3px; background:#ffffff; opacity:.9; }
+.brand h1 { font-size:calc(22px * var(--site-heading-scale)); margin:0; letter-spacing:-.04em; font-family:var(--site-font-heading); }
+.brand p { margin:3px 0 0; font-size:12px; color:#d6e0d8; }
+.top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.btn { border:1px solid var(--line); border-radius:11px; padding:10px 13px; background:var(--surface); color:var(--text); font-size:13px; font-weight:650; transition:transform .15s, background .15s; }
+.btn:hover { transform:translateY(-1px); }
+.btn.primary { background:var(--site-secondary); color:var(--site-on-secondary); border-color:transparent; }
+.btn.ghost { background:transparent; color:inherit; border-color:#ffffff50; }
+main { max-width:1440px; margin:0 auto; padding:24px clamp(12px, 2.5vw, 30px) 42px; }
+.intro { display:flex; justify-content:space-between; align-items:flex-end; gap:18px; margin-bottom:18px; flex-wrap:wrap; }
+.eyebrow { text-transform:uppercase; letter-spacing:.13em; font-size:10px; font-weight:800; color:var(--muted); }
+h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-spacing:-.045em; margin:6px 0 0; }
+.intro-copy { color:var(--muted); font-size:13px; margin:8px 0 0; }
+.week-switch { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:5px; }
+.week-switch button { width:34px; height:34px; border:0; border-radius:9px; background:transparent; color:var(--text); font-size:20px; }
+.week-switch button:hover { background:var(--surface-soft); }
+.week-label { min-width:0; flex:1; text-align:center; font-size:13px; font-weight:750; white-space:nowrap; }
+.week-switch #thisWeek { width:auto; flex:0 0 auto; white-space:nowrap; }
+.week-switch #thisWeek { font-size:12px; line-height:1.2; }
+.summary { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; margin-bottom:18px; }
+.stat { border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:17px 18px; min-height:100px; }
+.stat-label { color:var(--muted); font-size:12px; font-weight:650; display:flex; align-items:center; gap:7px; }
+.stat-number { margin-top:9px; display:flex; align-items:baseline; gap:7px; }
+.stat-number strong { font-size:30px; line-height:1; letter-spacing:-.06em; }
+.stat-number span { font-size:12px; color:var(--muted); }
+.progress { margin-top:12px; height:5px; border-radius:99px; background:var(--surface-soft); overflow:hidden; }
+.progress span { display:block; height:100%; width:0; background:var(--site-primary); border-radius:99px; transition:width .2s; }
+.allocation-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:9px; margin-top:14px; }
+.allocation-item { display:flex; align-items:center; gap:9px; min-width:0; padding:9px 10px; background:var(--surface-soft); border-radius:10px; }
+.allocation-dot { width:12px; height:12px; border-radius:4px; flex:0 0 12px; }
+.allocation-copy { flex:1; min-width:0; }
+.allocation-copy strong { display:block; font-size:12px; overflow-wrap:anywhere; }
+.allocation-copy span { display:block; margin-top:3px; font-size:10px; color:var(--muted); }
+.allocation-value { font-size:13px; font-weight:500; white-space:nowrap; }
+.task-panel { margin-top:16px; }
+.task-content { padding:16px 18px 18px; }
+.task-heading { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px; }
+.task-heading strong { font-size:14px; }
+.task-heading span { font-size:11px; color:var(--muted); }
+.task-list { display:flex; flex-direction:column; gap:7px; }
+.task-row { display:flex; align-items:center; gap:9px; padding:9px 10px; border:1px solid var(--line); border-radius:10px; }
+.task-row input[type=checkbox] { width:16px; height:16px; accent-color:var(--site-primary); flex:0 0 auto; }
+.task-row label { flex:1; min-width:0; font-size:12px; overflow-wrap:anywhere; }
+.task-row.done label { color:var(--muted); text-decoration:line-through; }
+.task-count { position:absolute; right:4px; bottom:4px; padding:2px 5px; border-radius:6px; background:#ffffffb8; color:#344238; font-size:9px; line-height:1.1; font-weight:750; letter-spacing:0; }
+.task-entry { display:flex; flex-direction:column; gap:4px; }
+.task-feedback { padding:0 10px 8px; display:flex; align-items:flex-start; gap:7px; }
+.task-feedback[hidden] { display:none; }
+.task-comment-display { margin:0 10px 8px 35px; padding:8px 10px; border-left:3px solid #d98b8b; border-radius:0 8px 8px 0; background:#fffafa; color:#b42323; font-size:12px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+.task-comment-display[hidden] { display:none; }
+.task-comment-display button { display:block; margin:5px 0 0 auto; border:0; background:transparent; color:#a35b5b; padding:2px 0; font-size:10px; }
+.task-row .task-comment-toggle { flex:0 0 auto; border:1px solid var(--line); background:var(--surface-soft); color:var(--muted); border-radius:7px; padding:5px 7px; font-size:11px; white-space:nowrap; }
+.task-feedback textarea { display:block; flex:1; min-width:0; width:100%; min-height:54px; margin-top:2px; resize:vertical; border:1px solid #e7b9b9; border-radius:8px; padding:8px 10px; background:#fffafa; color:#b42323; font:inherit; font-size:12px; line-height:1.5; }
+.task-feedback textarea::placeholder { color:#c87878; }
+.task-feedback .btn { flex:0 0 auto; white-space:nowrap; margin-top:2px; padding:7px 9px; font-size:11px; }
+.task-delete { border:0; background:transparent; color:var(--muted); border-radius:6px; padding:4px 7px; }
+.task-add { display:flex; gap:8px; margin-top:12px; }
+.task-add input { flex:1; min-width:0; border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:10px; padding:10px 12px; }
+.task-add .btn { white-space:nowrap; }
+.task-empty { color:var(--muted); font-size:12px; padding:8px 0; }
+.layout { display:grid; grid-template-columns:minmax(0,1fr) 285px; gap:16px; align-items:start; }
+.panel { border:1px solid var(--line); background:var(--surface); border-radius:var(--radius); overflow:hidden; min-width:0; }
+.panel-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:17px 18px; border-bottom:1px solid var(--line); }
+.panel-head h3 { margin:0; font-size:15px; letter-spacing:-.02em; }
+.panel-head p { margin:4px 0 0; color:var(--muted); font-size:11px; }
+.small-action { border:0; background:transparent; color:var(--muted); font-size:12px; font-weight:700; padding:7px; border-radius:8px; }
+.small-action:hover { background:var(--surface-soft); color:var(--text); }
+.grid-scroll { overflow-x:auto; padding:12px; }
+.week-grid { display:grid; grid-template-columns:42px repeat(7,minmax(68px,1fr)); gap:5px; min-width:610px; }
+.grid-corner { min-height:45px; }
+.day-head { border-radius:10px; background:var(--surface-soft); text-align:center; padding:8px 3px; min-height:45px; }
+.day-head .day { display:block; font-size:12px; font-weight:800; }
+.day-head .date { display:block; margin-top:3px; font-size:10px; color:var(--muted); }
+.day-head.today { background:var(--site-primary); color:var(--site-on-primary); }
+.day-head.today .date { color:inherit; opacity:.75; }
+.row-label { min-height:65px; display:flex; align-items:flex-start; justify-content:center; padding-top:10px; font-size:10px; color:var(--muted); font-weight:700; }
+.slot { min-height:65px; position:relative; border:1px dashed var(--line); border-radius:10px; background:light-dark(#fbfbf8,#252923); padding:6px; display:flex; align-items:center; justify-content:center; text-align:center; transition:border-color .15s, transform .15s, background .15s; }
+.slot.empty:hover { border-color:var(--site-primary); background:var(--surface-soft); }
+.slot.drag-over { border:2px dashed var(--site-primary); transform:scale(.98); background:var(--site-secondary); }
+.slot.filled { border:1px solid transparent; color:#26302a; cursor:grab; }
+.slot.filled:active { cursor:grabbing; }
+.slot .slot-name { font-size:11px; line-height:1.25; font-weight:800; overflow-wrap:anywhere; }
+.slot .remove { position:absolute; top:2px; right:3px; width:18px; height:18px; border:0; border-radius:50%; background:#ffffffa8; color:#333; font-size:13px; line-height:1; opacity:0; }
+.slot.filled:hover .remove, .slot.filled:focus-within .remove { opacity:1; }
+.grid-foot { padding:0 18px 16px; color:var(--muted); font-size:11px; display:flex; justify-content:space-between; gap:10px; }
+.side { display:flex; flex-direction:column; gap:14px; }
+.side .panel-head { padding:15px 16px; }
+.form { padding:15px 16px 16px; }
+.type-panel { position:relative; overflow:visible; }
+.type-create-popover { position:absolute; z-index:6; top:56px; right:12px; width:min(285px,calc(100% - 24px)); padding:15px 16px 16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); box-shadow:0 14px 38px #0002; }
+.type-create-popover[hidden] { display:none; }
+.type-panel .panel-head { border-radius:var(--radius) var(--radius) 0 0; align-items:center; flex-wrap:nowrap; gap:8px; }
+.type-panel .panel-head > div { min-width:0; flex:1; }
+.type-panel #toggleAddType { flex-shrink:0; white-space:nowrap; padding:9px 11px; }
+.field-label { display:block; color:var(--muted); font-size:11px; font-weight:750; margin-bottom:7px; }
+.name-input { width:100%; border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:10px; padding:11px 12px; outline:none; }
+.palette { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin:10px 0 14px; }
+.color-choice { width:100%; aspect-ratio:1; border:2px solid transparent; border-radius:9px; position:relative; }
+.color-choice.selected { outline:2px solid var(--text); outline-offset:2px; }
+.color-choice.selected::after { content:'✓'; position:absolute; inset:0; display:grid; place-items:center; color:#1e2822; font-size:13px; font-weight:900; }
+.add-row { display:flex; gap:8px; }
+.add-row .btn { flex:1; }
+.type-list { display:flex; flex-direction:column; gap:7px; padding:12px 14px 15px; }
+.type-more { display:block; width:calc(100% - 28px); margin:0 14px 14px; padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:var(--surface-soft); color:var(--text); font-size:11px; font-weight:700; }
+.type-more[hidden] { display:none; }
+.type-item { display:flex; align-items:center; gap:9px; border:1px solid var(--line); border-radius:11px; padding:9px 10px; background:var(--surface); cursor:grab; }
+.type-item:active { cursor:grabbing; }
+.type-dot { width:13px; height:13px; flex:0 0 13px; border-radius:4px; }
+.type-name { font-size:12px; font-weight:750; flex:1; overflow-wrap:anywhere; }
+.type-count { font-size:10px; color:var(--muted); white-space:nowrap; }
+.type-edit { border:0; background:transparent; color:var(--muted); padding:4px; border-radius:6px; }
+.type-edit:hover { background:var(--surface-soft); color:var(--text); }
+.type-empty { padding:8px 2px 12px; color:var(--muted); font-size:12px; line-height:1.6; }
+.history-list { padding:8px 12px 12px; display:flex; flex-direction:column; gap:6px; }
+.history-item { display:flex; gap:9px; align-items:center; padding:10px; border-radius:10px; background:var(--surface-soft); }
+.history-item.current { border:1px solid var(--site-primary); }
+.history-meta { flex:1; min-width:0; }
+.history-meta strong { display:block; font-size:11px; }
+.history-meta span { display:block; color:var(--muted); font-size:10px; margin-top:3px; }
+.history-open { border:0; background:var(--surface); color:var(--text); border-radius:7px; padding:6px 8px; font-size:10px; font-weight:750; }
+.empty-history { color:var(--muted); font-size:11px; padding:8px; line-height:1.6; }
+.toast { position:fixed; bottom:18px; left:50%; transform:translate(-50%,15px); opacity:0; pointer-events:none; background:#26352c; color:#fff; border-radius:12px; padding:11px 15px; font-size:12px; box-shadow:0 8px 30px #0002; transition:.2s; z-index:10; }
+.toast.show { opacity:1; transform:translate(-50%,0); }
+.modal-backdrop { position:fixed; inset:0; background:#12181270; display:none; align-items:center; justify-content:center; padding:18px; z-index:20; }
+.modal-backdrop.open { display:flex; }
+.modal { width:min(420px,100%); background:var(--surface); color:var(--text); border-radius:18px; padding:22px; box-shadow:0 24px 70px #0003; }
+.task-modal { width:min(520px,100%); max-height:min(82vh,720px); overflow:auto; }
+.task-modal .task-content { padding:8px 0 0; }
+.task-modal .task-heading strong { font-size:14px; }
+.modal h3 { margin:0 0 7px; font-size:18px; }
+.modal p { margin:0 0 18px; font-size:12px; color:var(--muted); line-height:1.6; }
+.modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+.footer-note { margin-top:16px; color:var(--muted); font-size:11px; line-height:1.6; }
+@media (max-width:900px) { .layout { grid-template-columns:1fr; } .side { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; } .side .history-panel { grid-column:1/-1; } }
+@media (max-width:600px) { .topbar { align-items:flex-start; flex-direction:column; padding:17px 15px; } .top-actions { justify-content:flex-start; } .top-actions .btn { padding:8px 10px; } main { padding:19px 10px 30px; } .intro { align-items:flex-start; flex-direction:column; } h2 { font-size:25px; } .week-switch { align-self:stretch; justify-content:space-between; gap:3px; } .week-label { flex:1; font-size:11px; letter-spacing:-.03em; } .week-switch button { flex:0 0 30px; width:30px; } .week-switch #thisWeek { flex:0 0 auto; width:auto; padding:8px 7px !important; font-size:11px; } .summary { grid-template-columns:1fr; gap:8px; } .stat:first-child { grid-column:auto; } .stat { padding:13px; min-height:87px; } .stat-number strong { font-size:26px; } .layout { display:flex; flex-direction:column; min-width:0; } .calendar-panel { order:2; width:100%; min-width:0; } .side { order:1; display:flex; flex-direction:column; width:100%; min-width:0; } .side .type-panel { order:1; } .side .history-panel { order:2; grid-column:auto; } .type-list { flex-direction:row; width:100%; max-width:100%; min-width:0; overflow-x:auto; overscroll-behavior-x:contain; padding:10px 12px 13px; gap:8px; -webkit-overflow-scrolling:touch; } .type-item { flex:0 0 auto; width:max-content; max-width:170px; padding:9px 10px; } .type-name { flex:0 1 auto; white-space:nowrap; max-width:95px; overflow:hidden; text-overflow:ellipsis; } .type-count { flex:0 0 auto; } .type-more { margin-bottom:10px; } .panel-head { padding:14px; } .grid-scroll { padding:8px; overflow-x:hidden; } .week-grid { grid-template-columns:25px repeat(7,minmax(0,1fr)); min-width:0; gap:3px; } .grid-corner { min-height:40px; } .day-head { min-width:0; min-height:40px; padding:7px 1px; } .day-head .day { font-size:11px; } .day-head .date { font-size:9px; } .row-label { min-height:58px; padding-top:8px; font-size:8px; letter-spacing:-.04em; } .slot { min-width:0; min-height:58px; padding:3px 1px; border-radius:7px; } .slot .slot-name { font-size:9px; line-height:1.15; overflow-wrap:anywhere; word-break:break-word; } .task-count { right:1px; bottom:1px; padding:1px 3px; font-size:8px; } .slot .remove { top:0; right:0; width:15px; height:15px; font-size:11px; } .grid-foot { padding:0 12px 13px; flex-direction:column; gap:5px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div><h1>블럭 플래너</h1><p>한 주의 시간을, 내가 원하는 색으로</p></div>
+    </div>
+    <div class="top-actions">
+      <button class="btn ghost" id="copyPrev">지난주 계획 복사</button>
+      <button class="btn ghost" id="clearWeek">이번 주 비우기</button>
+    </div>
+  </header>
+  <main>
+    <section class="intro">
+      <div><div class="eyebrow">WEEKLY TIME MAP</div><h2>이번 주를 설계해요.</h2><p class="intro-copy">블럭을 만들고, 색을 입히고, 비어 있는 시간을 채워 보세요.</p></div>
+      <div class="week-switch"><button id="prevWeek" aria-label="이전 주">‹</button><div class="week-label" id="weekLabel">날짜 불러오는 중</div><button id="nextWeek" aria-label="다음 주">›</button><button id="thisWeek" class="btn" style="padding:8px 10px">이번 주</button></div>
+    </section>
+    <section class="summary" aria-label="주간 블럭 배정 현황">
+      <div class="stat"><div class="stat-label">▦ 주간 배정 현황 · 가용 블럭</div><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭 배정 · 42블럭 남음</span></div><div class="progress"><span id="progressBar"></span></div><div class="allocation-list" id="allocationList"></div></div>
+    </section>
+    <section class="layout">
+      <div class="panel calendar-panel">
+        <div class="panel-head"><div><h3>주간 블럭 시간표</h3><p>빈 칸을 누르면 선택한 블럭이 들어가요 · 끌어서 옮길 수도 있어요</p></div></div>
+        <div class="grid-scroll"><div class="week-grid" id="weekGrid" aria-label="7일 42블럭 시간표"></div></div>
+        <div class="grid-foot"><span>※ 현재는 하루를 6개의 블럭으로 나눈 계획표예요.</span><span id="syncLabel">● 이 브라우저에 자동 저장</span></div>
+      </div>
+      <aside class="side">
+        <section class="panel type-panel">
+          <div class="panel-head"><div><h3>내 블럭</h3><p>이번 주에 많이 쓰는 블럭부터 보여요.</p></div><button class="btn primary" id="toggleAddType" type="button">+ 블럭 추가</button></div>
+          <div class="form type-create-popover" id="typeCreatePopover" hidden>
+            <label class="field-label" for="typeName">블럭 이름</label>
+            <input class="name-input" id="typeName" maxlength="24" placeholder="예: 공부, 운동, 휴식" autocomplete="off">
+            <div class="field-label" style="margin-top:14px">색상 선택</div>
+            <div class="palette" id="palette"></div>
+            <div class="add-row"><button class="btn primary" id="addType">+ 블럭 종류 추가</button><button class="btn" id="cancelEdit" style="display:none">취소</button></div>
+          </div>
+          <div class="type-list" id="typeList"></div>
+          <button class="type-more" id="toggleMoreTypes" type="button" hidden>나머지 블럭 더보기 ↓</button>
+        </section>
+        <section class="panel history-panel">
+          <div class="panel-head"><div><h3>주간 기록</h3></div></div>
+          <div class="history-list" id="historyList"></div>
+        </section>
+      </aside>
+    </section>
+    <p class="footer-note">시제품 안내: 현재 기록은 이 브라우저에 저장됩니다. 아이폰과 윈도우 간 동기화 및 오프라인 후 서버 동기화는 다음 개발 단계에서 연결해야 합니다. 브라우저 데이터를 지우면 저장한 기록이 사라질 수 있습니다.</p>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal"><h3 id="modalTitle">이번 주 계획을 비울까요?</h3><p id="modalText">시간표의 배정이 모두 지워집니다. 저장해 둔 과거 기록은 유지됩니다.</p><div class="modal-actions"><button class="btn" id="modalCancel">취소</button><button class="btn primary" id="modalConfirm">비우기</button></div></div>
+</div>
+<div class="modal-backdrop" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="taskModalTitle">블럭 체크리스트</h3><button class="small-action" id="taskModalClose" type="button" aria-label="체크리스트 닫기">닫기 ×</button></div><p>이 블럭에서 할 일을 추가하고 완료 여부를 체크할 수 있어요.</p><div class="task-content" id="taskContent"><div class="task-empty">시간표에서 배정된 블럭을 선택해 주세요.</div></div></div>
+</div>
+<script>
+(() => {
+  const COLORS = ['#B8D4F8','#F4C7B8','#C7E4CB','#E9D3F4','#F4E1A3','#BDE4E3','#D6D9DF','#F2C8DA','#D8D0B8','#BFC7F2','#F0D0A8','#C8D8C5','#A9D2E8','#F6B8A8','#A8D5B5','#D8B9F0','#E8CF78','#8ED4CF','#C1C7D1','#E8AFC8','#C6B89C','#9DAAE8','#E7B878','#AFC5A5','#7FB0D6','#E58E83','#80B88D','#B992D8','#D8B94E','#68BDB5','#A2AAB8','#D78BAE','#B4A17D','#7887D0','#D89A52','#7D9B72'];
+  const DAYS = ['월','화','수','목','금','토','일'];
+  const STORAGE_KEY = 'block-planner-prototype-v1';
+  let chosenColor = COLORS[0];
+  let selectedTypeId = null;
+  let selectedTaskSlot = null;
+  let editingTypeId = null;
+  let showAllTypes = false;
+  let dragData = null;
+  let pendingConfirm = null;
+  let state = { types: [], weeks: {}, currentWeek: weekKey(new Date()) };
+  const $ = id => document.getElementById(id);
+  const clone = x => JSON.parse(JSON.stringify(x));
+  const uid = () => 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  function weekStart(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - day);
+    d.setHours(12,0,0,0);
+    return d;
+  }
+  function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function weekKey(date) { return dateKey(weekStart(date)); }
+  function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate()+n); return d; }
+  function currentWeek() { return state.weeks[state.currentWeek] || { slots: Array(42).fill(null), tasks: {}, updatedAt: null }; }
+  function ensureWeek(key) { if (!state.weeks[key]) state.weeks[key] = { slots: Array(42).fill(null), tasks: {}, updatedAt: null }; if (state.weeks[key].slots.length !== 42) state.weeks[key].slots = Array.from({length:42}, (_,i)=>state.weeks[key].slots[i] || null); if(!state.weeks[key].tasks) state.weeks[key].tasks={}; return state.weeks[key]; }
+  function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); $('syncLabel').textContent = '● 이 브라우저에 자동 저장'; } catch (e) { $('syncLabel').textContent = '저장 공간을 확인해 주세요'; } }
+  function toast(message) { const el=$('toast'); el.textContent=message; el.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>el.classList.remove('show'),2200); }
+  function fmtDate(d, withYear=false) { return `${withYear ? d.getFullYear()+'. ' : ''}${d.getMonth()+1}.${d.getDate()}`; }
+  function weekRange(key) { const start = new Date(key+'T12:00:00'); const end = addDays(start,6); return {start,end}; }
+  function weekLabel(key) { const {start,end}=weekRange(key); return `${fmtDate(start,true)} — ${fmtDate(end, start.getFullYear()!==end.getFullYear())}`; }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function renderPalette() {
+    $('palette').innerHTML = COLORS.map(c=>`<button class="color-choice ${c===chosenColor?'selected':''}" type="button" data-color="${c}" aria-label="색상 ${c}" aria-pressed="${c===chosenColor}" style="background:${c}"></button>`).join('');
+    $('palette').querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{chosenColor=b.dataset.color;renderPalette();}));
+  }
+  function renderTypes() {
+    const list=$('typeList');
+    const moreButton=$('toggleMoreTypes');
+    if (!state.types.length) { list.innerHTML='<div class="type-empty">아직 블럭 종류가 없어요.<br>위에서 이름과 색을 정해 추가해 주세요.</div>'; moreButton.hidden=true; return; }
+    const sorted=state.types.map(t=>({type:t,count:currentWeek().slots.filter(s=>s===t.id).length})).sort((a,b)=>b.count-a.count||state.types.indexOf(a.type)-state.types.indexOf(b.type));
+    const visible=showAllTypes?sorted:sorted.slice(0,10);
+    list.innerHTML=visible.map(({type:t,count})=>{
+      return `<div class="type-item" draggable="true" data-type="${t.id}" title="클릭해서 선택하거나 시간표로 끌어 놓으세요."><span class="type-dot" style="background:${t.color}"></span><span class="type-name">${escapeHtml(t.name)}</span><span class="type-count">${count}칸</span><button class="type-edit" data-edit="${t.id}" aria-label="${escapeHtml(t.name)} 수정">···</button></div>`;
+    }).join('');
+    moreButton.hidden=sorted.length<=10;
+    moreButton.textContent=showAllTypes?'접기 ↑':`나머지 블럭 ${sorted.length-10}개 더보기 ↓`;
+    list.querySelectorAll('[data-type]').forEach(el=>{
+      el.addEventListener('click',e=>{if(e.target.closest('[data-edit]')) return; selectedTypeId=el.dataset.type; renderTypes(); toast('선택됨 · 빈 시간표 칸을 눌러 배정하세요.');});
+      el.addEventListener('dragstart',e=>{dragData={typeId:el.dataset.type, fromSlot:null}; e.dataTransfer.setData('text/plain',JSON.stringify(dragData)); e.dataTransfer.effectAllowed='copy';});
+    });
+    list.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();startEdit(b.dataset.edit);}));
+    list.querySelectorAll('[data-type]').forEach(el=>el.style.outline=el.dataset.type===selectedTypeId?'2px solid var(--site-primary)':'none');
+  }
+  $('toggleMoreTypes').addEventListener('click',()=>{showAllTypes=!showAllTypes;renderTypes();});
+  function renderGrid() {
+    const grid=$('weekGrid'); const start=new Date(state.currentWeek+'T12:00:00'); const slots=currentWeek().slots;
+    const todayKey=dateKey(new Date());
+    let html='<div class="grid-corner"></div>';
+    for(let d=0;d<7;d++) { const date=addDays(start,d); html+=`<div class="day-head ${dateKey(date)===todayKey?'today':''}"><span class="day">${DAYS[d]}</span><span class="date">${date.getMonth()+1}/${date.getDate()}</span></div>`; }
+    for(let r=0;r<6;r++) {
+      html+=`<div class="row-label">BLOCK ${String(r+1).padStart(2,'0')}</div>`;
+      for(let d=0;d<7;d++) {
+        const idx=r*7+d; const type=state.types.find(t=>t.id===slots[idx]);
+        if(type) { const tasks=(currentWeek().tasks||{})[idx]||[]; const done=tasks.filter(t=>t.done).length; html+=`<div class="slot filled" tabindex="0" role="button" draggable="true" data-slot="${idx}" style="background:${type.color};${selectedTaskSlot===idx?'outline:3px solid var(--site-primary);outline-offset:1px;':''}" aria-label="${DAYS[d]}요일 블럭 ${r+1}: ${escapeHtml(type.name)}"><span class="slot-name">${escapeHtml(type.name)}</span>${tasks.length?`<span class="task-count">${done}/${tasks.length} ✓</span>`:''}<button class="remove" data-remove="${idx}" aria-label="블럭 비우기">×</button></div>`; }
+        else html+=`<div class="slot empty" tabindex="0" role="button" data-slot="${idx}" aria-label="${DAYS[d]}요일 블럭 ${r+1}, 비어 있음"><span style="font-size:18px;color:var(--muted);font-weight:300">+</span></div>`;
+      }
+    }
+    grid.innerHTML=html;
+    grid.querySelectorAll('[data-slot]').forEach(el=>{
+      const idx=Number(el.dataset.slot);
+      el.addEventListener('click',e=>{
+        if(e.target.closest('[data-remove]')) return;
+        if(el.classList.contains('filled')) { selectedTaskSlot=idx; selectedTypeId=null; renderTypes(); renderTasks(); renderGrid(); $('taskModal').classList.add('open'); }
+        else if(selectedTypeId) assign(idx,selectedTypeId);
+        else toast('먼저 오른쪽에서 블럭 종류를 선택해 주세요.');
+      });
+      el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
+      el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');e.dataTransfer.dropEffect='move';});
+      el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
+      el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drag-over');let data=dragData;try{data=JSON.parse(e.dataTransfer.getData('text/plain'))||data;}catch{} if(!data)return; if(data.fromSlot!==null && data.fromSlot!==undefined) moveSlot(data.fromSlot,idx); else if(data.typeId) assign(idx,data.typeId);});
+      if(el.classList.contains('filled')) el.addEventListener('dragstart',e=>{dragData={typeId:currentWeek().slots[idx],fromSlot:idx};e.dataTransfer.setData('text/plain',JSON.stringify(dragData));e.dataTransfer.effectAllowed='move';});
+    });
+    grid.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();currentWeek().slots[Number(b.dataset.remove)]=null;touchWeek();renderAll();}));
+  }
+  function assign(index,typeId) { if(!state.types.some(t=>t.id===typeId)) return; currentWeek().slots[index]=typeId; selectedTypeId=typeId; selectedTaskSlot=index; touchWeek(); renderAll(); }
+  function moveSlot(from,to) { if(from===to)return; const slots=currentWeek().slots; const target=slots[to]; slots[to]=slots[from]; slots[from]=target || null; touchWeek(); renderAll(); }
+  function touchWeek() { currentWeek().updatedAt=new Date().toISOString(); persist(); }
+  function renderStats() { const slots=currentWeek().slots; const count=slots.filter(Boolean).length; $('assignedCount').textContent=count; $('availabilityText').textContent=`/ 42 블럭 배정 · ${42-count}블럭 남음`; $('progressBar').style.width=(count/42*100)+'%'; const totals=state.types.map(type=>({type,count:slots.filter(id=>id===type.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count); $('allocationList').innerHTML=totals.length?totals.map(x=>`<div class="allocation-item"><span class="allocation-dot" style="background:${x.type.color}"></span><div class="allocation-copy"><strong>${escapeHtml(x.type.name)}</strong><span>${x.count} / 42 블럭</span></div><span class="allocation-value">${Math.round(x.count/42*100)}%</span></div>`).join(''):'<div class="task-empty">아직 배정된 블럭이 없어요.</div>'; }
+  function renderTasks() { const root=$('taskContent'); const idx=selectedTaskSlot; const type=idx===null?null:state.types.find(t=>t.id===currentWeek().slots[idx]); if(idx===null||!type){root.innerHTML='<div class="task-empty">시간표에서 배정된 블럭을 선택하면 해당 블럭의 체크리스트를 관리할 수 있어요.</div>';return;} const tasks=(currentWeek().tasks||{})[idx]||[]; const day=DAYS[idx%7]; const block=Math.floor(idx/7)+1; root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(block).padStart(2,'0')} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label>${t.comment?`<button class="task-comment-toggle" type="button" data-edit-comment="${t.id}">수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}" aria-expanded="false">피드백</button>`}<button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}<button type="button" data-edit-comment="${t.id}">수정</button></div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이 블럭에 등록한 할 일이 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="이 블럭에서 할 일 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`; root.querySelectorAll('[data-toggle-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-feedback-panel="${el.dataset.toggleComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();})); root.querySelectorAll('[data-edit-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editComment;const panel=root.querySelector(`[data-feedback-panel="${id}"]`);const display=root.querySelector(`[data-comment-display="${id}"]`);if(panel&&display){panel.hidden=false;display.hidden=true;panel.querySelector('textarea').focus();}})); root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const task=tasks.find(t=>t.id===el.dataset.taskCheck);if(task)task.done=el.checked;touchWeek();renderAll();})); root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().tasks[idx]=tasks.filter(t=>t.id!==el.dataset.taskDelete);touchWeek();renderAll();})); root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveComment);const input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(task&&input){task.comment=input.value.trim();touchWeek();renderAll();toast('피드백을 저장했어요.');}})); const addTask=()=>{const input=$('taskInput');const taskText=input.value.trim();if(!taskText){toast('할 일을 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.tasks[idx]))week.tasks[idx]=[];week.tasks[idx].push({id:uid(),text:taskText,done:false,comment:''});touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();}; $('addTaskButton').addEventListener('click',addTask); $('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}}); $('taskForm').addEventListener('submit',e=>e.preventDefault()); }
+  function renderHistory() {
+    const entries=Object.keys(state.weeks).filter(key=>{const w=state.weeks[key];return (w.slots||[]).some(Boolean)||Object.values(w.tasks||{}).some(tasks=>Array.isArray(tasks)&&tasks.length>0);}).sort((a,b)=>b.localeCompare(a));
+    if(!entries.length){$('historyList').innerHTML='<div class="empty-history">아직 기록이 없어요.<br>블럭을 배정하거나 할 일을 추가하면 자동으로 기록돼요.</div>';return;}
+    $('historyList').innerHTML=entries.slice(0,8).map(key=>{
+      const w=state.weeks[key]; const count=(w.slots||[]).filter(Boolean).length; const isCurrent=key===state.currentWeek;
+      const swatches=(w.slots||[]).filter(Boolean).slice(0,10).map(id=>{const t=state.types.find(t=>t.id===id);return t?`<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${t.color};margin-right:2px"></i>`:''}).join('');
+      return `<div class="history-item ${isCurrent?'current':''}"><div class="history-meta"><strong>${weekLabel(key)}</strong><span>${count}/42 블럭 배정 ${swatches}</span></div><button class="history-open" data-open-week="${key}">${isCurrent?'현재':'열기'}</button></div>`;
+    }).join('');
+    $('historyList').querySelectorAll('[data-open-week]').forEach(b=>b.addEventListener('click',()=>{state.currentWeek=b.dataset.openWeek;ensureWeek(state.currentWeek);persist();renderAll();toast('주간 기록을 열었어요.');}));
+  }
+  function renderAll() { $('weekLabel').textContent=weekLabel(state.currentWeek); renderGrid(); renderTypes(); renderStats(); renderHistory(); renderTasks(); }
+  function startEdit(id) { const t=state.types.find(x=>x.id===id); if(!t)return; editingTypeId=id; chosenColor=t.color; $('typeName').value=t.name; $('addType').textContent='변경 저장'; $('cancelEdit').style.display='inline-block'; openTypePopover(); renderPalette(); $('typeName').focus(); }
+  function openTypePopover() { $('typeCreatePopover').hidden=false; $('toggleAddType').setAttribute('aria-expanded','true'); }
+  function closeTypePopover() { $('typeCreatePopover').hidden=true; $('toggleAddType').setAttribute('aria-expanded','false'); }
+  function cancelEdit() { editingTypeId=null; $('typeName').value=''; $('addType').textContent='+ 블럭 종류 추가'; $('cancelEdit').style.display='none'; closeTypePopover(); renderPalette(); }
+  $('toggleAddType').addEventListener('click',()=>{if(!$('typeCreatePopover').hidden){closeTypePopover();return;}editingTypeId=null;$('typeName').value='';$('addType').textContent='+ 블럭 종류 추가';$('cancelEdit').style.display='none';openTypePopover();renderPalette();$('typeName').focus();});
+  $('addType').addEventListener('click',()=>{
+    const name=$('typeName').value.trim(); if(!name){toast('블럭 이름을 입력해 주세요.');$('typeName').focus();return;}
+    if(editingTypeId){const t=state.types.find(t=>t.id===editingTypeId);if(t){t.name=name;t.color=chosenColor;} cancelEdit(); toast('블럭 종류를 수정했어요.');}
+    else {const t={id:uid(),name,color:chosenColor};state.types.push(t);selectedTypeId=t.id;$('typeName').value='';closeTypePopover();toast('블럭 종류를 추가했어요. 빈 칸을 눌러 배정하세요.');}
+    persist();renderAll();
+  });
+  $('typeName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('addType').click();}});
+  $('cancelEdit').addEventListener('click',cancelEdit);
+  $('prevWeek').addEventListener('click',()=>{state.currentWeek=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),-7));ensureWeek(state.currentWeek);persist();renderAll();});
+  $('nextWeek').addEventListener('click',()=>{state.currentWeek=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),7));ensureWeek(state.currentWeek);persist();renderAll();});
+  $('thisWeek').addEventListener('click',()=>{state.currentWeek=weekKey(new Date());ensureWeek(state.currentWeek);persist();renderAll();});
+  $('copyPrev').addEventListener('click',()=>{const prev=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),-7));if(!state.weeks[prev]){toast('복사할 지난주 기록이 없어요.');return;}state.weeks[state.currentWeek]={slots:clone(state.weeks[prev].slots),tasks:clone(state.weeks[prev].tasks||{}),updatedAt:new Date().toISOString()};persist();renderAll();toast('지난주 계획을 복사했어요.');});
+  $('clearWeek').addEventListener('click',()=>openConfirm(()=>{currentWeek().slots=Array(42).fill(null);currentWeek().tasks={};selectedTaskSlot=null;touchWeek();renderAll();toast('이번 주 시간표와 체크리스트를 비웠어요.');}));
+  function openConfirm(fn){pendingConfirm=fn;$('confirmModal').classList.add('open');}
+  $('modalCancel').addEventListener('click',()=>{$('confirmModal').classList.remove('open');pendingConfirm=null;});
+  $('modalConfirm').addEventListener('click',()=>{$('confirmModal').classList.remove('open');if(pendingConfirm)pendingConfirm();pendingConfirm=null;});
+  $('confirmModal').addEventListener('click',e=>{if(e.target===$('confirmModal'))$('modalCancel').click();});
+  $('taskModalClose').addEventListener('click',()=>$('taskModal').classList.remove('open'));
+  $('taskModal').addEventListener('click',e=>{if(e.target===$('taskModal'))$('taskModal').classList.remove('open');});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')$('taskModal').classList.remove('open');});
+  try { const saved=localStorage.getItem(STORAGE_KEY); if(saved){const parsed=JSON.parse(saved);if(parsed&&Array.isArray(parsed.types)&&parsed.weeks){state={...state,...parsed};}} } catch(e) { /* start with an empty plan if storage is unavailable */ }
+  ensureWeek(state.currentWeek);
+  renderPalette();renderAll();
+})();
+</script>
+</body>
+</html>
