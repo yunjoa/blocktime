@@ -3,8 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f5f4f0">
-<title>블럭 주간 시간표</title>
+<meta name="theme-color" content="#344d43">
+<meta name="description" content="Timeblock — 한 주의 시간을 블럭으로 배정하고, 주간 목표와 실행 피드백을 기록하는 개인 플래너.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Timeblock | 주간 시간 블럭 플래너">
+<meta property="og:description" content="한 주의 시간을 블럭으로 계획하고, 목표와 실행 피드백을 기록해 보세요.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23344d43'/%3E%3Crect x='13' y='13' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='35' y='13' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='13' y='35' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='35' y='35' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3C/svg%3E">
+<title>Timeblock</title>
 <style>
 :root {
   color-scheme: light dark;
@@ -40,6 +46,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, .slot:focus-vis
 .brand { display:flex; align-items:center; gap:12px; }
 .brand-mark { width:40px; height:40px; display:grid; grid-template-columns:repeat(2,1fr); gap:4px; padding:6px; border:1px solid #ffffff66; border-radius:12px; }
 .brand-mark i { display:block; border-radius:3px; background:#ffffff; opacity:.9; }
+.mini-mark { display:inline-grid; grid-template-columns:repeat(2,5px); grid-template-rows:repeat(2,5px); gap:2px; margin-right:2px; vertical-align:middle; }
+.mini-mark i { display:block; width:5px; height:5px; border-radius:1px; background:currentColor; }
 .brand h1 { font-size:calc(22px * var(--site-heading-scale)); margin:0; letter-spacing:-.04em; font-family:var(--site-font-heading); }
 .brand p { margin:3px 0 0; font-size:12px; color:#d6e0d8; }
 .top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
@@ -70,6 +78,8 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .progress span { display:block; height:100%; width:0; background:var(--site-primary); border-radius:99px; transition:width .2s; }
 .allocation-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:9px; margin-top:14px; }
 .allocation-item { display:flex; align-items:center; gap:9px; min-width:0; padding:9px 10px; background:var(--surface-soft); border-radius:10px; }
+.allocation-item { width:100%; border:1px solid transparent; color:var(--text); text-align:left; font:inherit; cursor:pointer; transition:border-color .15s, transform .15s; }
+.allocation-item:hover, .allocation-item:focus-visible { border-color:var(--site-primary); transform:translateY(-1px); }
 .allocation-dot { width:12px; height:12px; border-radius:4px; flex:0 0 12px; }
 .allocation-copy { flex:1; min-width:0; }
 .allocation-copy strong { display:block; font-size:12px; overflow-wrap:anywhere; }
@@ -183,7 +193,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-      <div><h1>블럭 플래너</h1><p>한 주의 시간을, 내가 원하는 색으로</p></div>
+      <div><h1>Timeblock</h1><p>한 주의 시간을, 내가 원하는 색으로</p></div>
     </div>
     <div class="top-actions">
       <button class="btn primary" id="googleLogin" type="button">Google 로그인</button>
@@ -195,11 +205,11 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   </header>
   <main>
     <section class="intro">
-      <div><div class="eyebrow">WEEKLY TIME MAP</div><h2>이번 주를 설계해요.</h2><p class="intro-copy">블럭을 만들고, 색을 입히고, 비어 있는 시간을 채워 보세요.</p></div>
+      <div><div class="eyebrow">TIMEBLOCK · WEEKLY PLAN</div><h2>이번 주를 설계해요.</h2><p class="intro-copy">블럭을 만들고, 색을 입히고, 비어 있는 시간을 채워 보세요.</p></div>
       <div class="week-switch"><button id="prevWeek" aria-label="이전 주">‹</button><div class="week-label" id="weekLabel">날짜 불러오는 중</div><button id="nextWeek" aria-label="다음 주">›</button><button id="thisWeek" class="btn" style="padding:8px 10px">이번 주</button></div>
     </section>
     <section class="summary" aria-label="주간 블럭 배정 현황">
-      <div class="stat"><div class="stat-label">▦ 주간 배정 현황 · 가용 블럭</div><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭 배정 · 42블럭 남음</span></div><div class="progress"><span id="progressBar"></span></div><div class="allocation-list" id="allocationList"></div></div>
+      <div class="stat"><div class="stat-label"><span class="mini-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>주간 배정 현황 · 가용 블럭</div><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭 배정 · 42블럭 남음</span></div><div class="progress"><span id="progressBar"></span></div><div class="allocation-list" id="allocationList"></div></div>
     </section>
     <section class="layout">
       <div class="panel calendar-panel">
@@ -226,7 +236,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
         </section>
       </aside>
     </section>
-    <p class="footer-note">시제품 안내: 현재 기록은 이 브라우저에 저장됩니다. 아이폰과 윈도우 간 동기화 및 오프라인 후 서버 동기화는 실제 웹사이트에 Firebase를 연결하는 단계에서 설정해야 합니다. 브라우저 데이터를 지우면 저장한 기록이 사라질 수 있습니다.</p>
+    <p class="footer-note">Google 로그인 시 PC와 아이폰에서 같은 시간표를 사용할 수 있어요. 변경 내용은 자동 저장됩니다.</p>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -234,7 +244,10 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   <div class="modal"><h3 id="modalTitle">이번 주 계획을 비울까요?</h3><p id="modalText">시간표의 배정이 모두 지워집니다. 저장해 둔 과거 기록은 유지됩니다.</p><div class="modal-actions"><button class="btn" id="modalCancel">취소</button><button class="btn primary" id="modalConfirm">비우기</button></div></div>
 </div>
 <div class="modal-backdrop" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
-  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="taskModalTitle">블럭 체크리스트</h3><button class="small-action" id="taskModalClose" type="button" aria-label="체크리스트 닫기">닫기 ×</button></div><p>이 블럭에서 할 일을 추가하고 완료 여부를 체크할 수 있어요.</p><div class="task-content" id="taskContent"><div class="task-empty">시간표에서 배정된 블럭을 선택해 주세요.</div></div></div>
+  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="taskModalTitle">블럭 체크리스트</h3><button class="small-action" id="taskModalClose" type="button" aria-label="체크리스트 닫기">닫기 ×</button></div><p>이 블럭에서 할 일을 추가하고 완료 여부와 피드백을 기록할 수 있어요.</p><div class="task-content" id="taskContent"><div class="task-empty">시간표에서 배정된 블럭을 선택해 주세요.</div></div></div>
+</div>
+<div class="modal-backdrop" id="goalModal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="goalModalTitle">주간 목표</h3><button class="small-action" id="goalModalClose" type="button" aria-label="주간 목표 닫기">닫기 ×</button></div><p>이번 주 이 블럭 종류에서 달성할 목표를 적고, 완료 여부와 피드백을 기록해요.</p><div class="task-content" id="goalContent"><div class="task-empty">주간 배정 현황에서 블럭을 선택해 주세요.</div></div></div>
 </div>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
@@ -261,6 +274,7 @@ const googleProvider = new GoogleAuthProvider();
   let chosenColor = COLORS[0];
   let selectedTypeId = null;
   let selectedTaskSlot = null;
+  let selectedGoalTypeId = null;
   let editingTypeId = null;
   let showAllTypes = false;
   let dragData = null;
@@ -283,8 +297,8 @@ const googleProvider = new GoogleAuthProvider();
   function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
   function weekKey(date) { return dateKey(weekStart(date)); }
   function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate()+n); return d; }
-  function currentWeek() { return state.weeks[state.currentWeek] || { slots: Array(42).fill(null), tasks: {}, updatedAt: null }; }
-  function ensureWeek(key) { if (!state.weeks[key]) state.weeks[key] = { slots: Array(42).fill(null), tasks: {}, updatedAt: null }; if (state.weeks[key].slots.length !== 42) state.weeks[key].slots = Array.from({length:42}, (_,i)=>state.weeks[key].slots[i] || null); if(!state.weeks[key].tasks) state.weeks[key].tasks={}; return state.weeks[key]; }
+  function currentWeek() { return state.weeks[state.currentWeek] || { slots: Array(42).fill(null), tasks: {}, goals: {}, updatedAt: null }; }
+  function ensureWeek(key) { if (!state.weeks[key]) state.weeks[key] = { slots: Array(42).fill(null), tasks: {}, goals: {}, updatedAt: null }; if (state.weeks[key].slots.length !== 42) state.weeks[key].slots = Array.from({length:42}, (_,i)=>state.weeks[key].slots[i] || null); if(!state.weeks[key].tasks) state.weeks[key].tasks={}; if(!state.weeks[key].goals) state.weeks[key].goals={}; return state.weeks[key]; }
   function persist() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { $('syncLabel').textContent = '브라우저 저장 공간을 확인해 주세요'; }
     if (!currentUser || !cloudReady) {
@@ -457,10 +471,24 @@ const googleProvider = new GoogleAuthProvider();
   function assign(index,typeId) { if(!state.types.some(t=>t.id===typeId)) return; currentWeek().slots[index]=typeId; selectedTypeId=typeId; selectedTaskSlot=index; touchWeek(); renderAll(); }
   function moveSlot(from,to) { if(from===to)return; const slots=currentWeek().slots; const target=slots[to]; slots[to]=slots[from]; slots[from]=target || null; touchWeek(); renderAll(); }
   function touchWeek() { currentWeek().updatedAt=new Date().toISOString(); persist(); }
-  function renderStats() { const slots=currentWeek().slots; const count=slots.filter(Boolean).length; $('assignedCount').textContent=count; $('availabilityText').textContent=`/ 42 블럭 배정 · ${42-count}블럭 남음`; $('progressBar').style.width=(count/42*100)+'%'; const totals=state.types.map(type=>({type,count:slots.filter(id=>id===type.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count); $('allocationList').innerHTML=totals.length?totals.map(x=>`<div class="allocation-item"><span class="allocation-dot" style="background:${x.type.color}"></span><div class="allocation-copy"><strong>${escapeHtml(x.type.name)}</strong><span>${x.count} / 42 블럭</span></div><span class="allocation-value">${Math.round(x.count/42*100)}%</span></div>`).join(''):'<div class="task-empty">아직 배정된 블럭이 없어요.</div>'; }
+  function renderStats() { const slots=currentWeek().slots; const count=slots.filter(Boolean).length; $('assignedCount').textContent=count; $('availabilityText').textContent=`/ 42 블럭 배정 · ${42-count}블럭 남음`; $('progressBar').style.width=(count/42*100)+'%'; const totals=state.types.map(type=>({type,count:slots.filter(id=>id===type.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count); $('allocationList').innerHTML=totals.length?totals.map(x=>{const goals=(currentWeek().goals||{})[x.type.id]||[];return `<button type="button" class="allocation-item" data-goal-type="${x.type.id}" aria-label="${escapeHtml(x.type.name)} 주간 목표 열기"><span class="allocation-dot" style="background:${x.type.color}"></span><div class="allocation-copy"><strong>${escapeHtml(x.type.name)}</strong><span>${x.count} / 42 블럭 · 주간 목표 ${goals.filter(g=>g.done).length}/${goals.length}</span></div><span class="allocation-value">${Math.round(x.count/42*100)}%　›</span></button>`;}).join(''):'<div class="task-empty">아직 배정된 블럭이 없어요.</div>'; $('allocationList').querySelectorAll('[data-goal-type]').forEach(b=>b.addEventListener('click',()=>{selectedGoalTypeId=b.dataset.goalType;renderGoals();$('goalModal').classList.add('open');})); }
+  function renderGoals() {
+    const root=$('goalContent');
+    const type=state.types.find(t=>t.id===selectedGoalTypeId);
+    if(!type){root.innerHTML='<div class="task-empty">주간 배정 현황에서 블럭 종류를 선택해 주세요.</div>';return;}
+    const goals=(currentWeek().goals||{})[type.id]||[];
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${escapeHtml(type.name)} · 이번 주 목표</strong><span>${goals.filter(g=>g.done).length}/${goals.length}개 완료</span></div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-entry"><div class="task-row ${g.done?'done':''}"><input type="checkbox" data-goal-check="${g.id}" ${g.done?'checked':''} aria-label="주간 목표 완료"><label>${escapeHtml(g.text)}</label>${g.comment?`<button class="task-comment-toggle" type="button" data-edit-goal-comment="${g.id}">피드백 수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-goal-comment="${g.id}" aria-expanded="false">피드백</button>`}<button class="task-delete" type="button" data-goal-delete="${g.id}" aria-label="목표 삭제">×</button></div><div class="task-comment-display" data-goal-comment-display="${g.id}" ${g.comment?'':'hidden'}>${escapeHtml(g.comment||'')}<button type="button" data-edit-goal-comment="${g.id}">수정</button></div><div class="task-feedback" data-goal-feedback-panel="${g.id}" hidden><textarea data-goal-comment="${g.id}" maxlength="1000" placeholder="목표 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(g.comment||'')}</textarea><button class="btn" type="button" data-save-goal-comment="${g.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이번 주 목표가 없어요. 아래에서 추가해 주세요.</div>'}</div><form class="task-add" id="goalForm"><input id="goalInput" maxlength="120" placeholder="이번 주에 달성할 목표 추가" aria-label="주간 목표 입력" autocomplete="off"><button class="btn primary" id="addGoalButton" type="button">추가</button></form>`;
+    root.querySelectorAll('[data-toggle-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-goal-feedback-panel="${el.dataset.toggleGoalComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();}));
+    root.querySelectorAll('[data-edit-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editGoalComment;const panel=root.querySelector(`[data-goal-feedback-panel="${id}"]`);const display=root.querySelector(`[data-goal-comment-display="${id}"]`);if(panel&&display){panel.hidden=false;display.hidden=true;panel.querySelector('textarea').focus();}}));
+    root.querySelectorAll('[data-goal-check]').forEach(el=>el.addEventListener('change',()=>{const goal=goals.find(g=>g.id===el.dataset.goalCheck);if(goal)goal.done=el.checked;touchWeek();renderStats();renderGoals();}));
+    root.querySelectorAll('[data-goal-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().goals[type.id]=goals.filter(g=>g.id!==el.dataset.goalDelete);touchWeek();renderStats();renderGoals();}));
+    root.querySelectorAll('[data-save-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const goal=goals.find(g=>g.id===el.dataset.saveGoalComment);const input=root.querySelector(`[data-goal-comment="${el.dataset.saveGoalComment}"]`);if(goal&&input){goal.comment=input.value.trim();touchWeek();renderStats();renderGoals();toast('주간 목표 피드백을 저장했어요.');}}));
+    const addGoal=()=>{const input=$('goalInput');const value=input.value.trim();if(!value){toast('목표를 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.goals[type.id]))week.goals[type.id]=[];week.goals[type.id].push({id:uid(),text:value,done:false,comment:''});touchWeek();renderStats();renderGoals();$('goalInput').focus();};
+    $('addGoalButton').addEventListener('click',addGoal);$('goalInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addGoal();}});$('goalForm').addEventListener('submit',e=>e.preventDefault());
+  }
   function renderTasks() { const root=$('taskContent'); const idx=selectedTaskSlot; const type=idx===null?null:state.types.find(t=>t.id===currentWeek().slots[idx]); if(idx===null||!type){root.innerHTML='<div class="task-empty">시간표에서 배정된 블럭을 선택하면 해당 블럭의 체크리스트를 관리할 수 있어요.</div>';return;} const tasks=(currentWeek().tasks||{})[idx]||[]; const day=DAYS[idx%7]; const block=Math.floor(idx/7)+1; root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(block).padStart(2,'0')} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label>${t.comment?`<button class="task-comment-toggle" type="button" data-edit-comment="${t.id}">수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}" aria-expanded="false">피드백</button>`}<button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}<button type="button" data-edit-comment="${t.id}">수정</button></div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이 블럭에 등록한 할 일이 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="이 블럭에서 할 일 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`; root.querySelectorAll('[data-toggle-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-feedback-panel="${el.dataset.toggleComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();})); root.querySelectorAll('[data-edit-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editComment;const panel=root.querySelector(`[data-feedback-panel="${id}"]`);const display=root.querySelector(`[data-comment-display="${id}"]`);if(panel&&display){panel.hidden=false;display.hidden=true;panel.querySelector('textarea').focus();}})); root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const task=tasks.find(t=>t.id===el.dataset.taskCheck);if(task)task.done=el.checked;touchWeek();renderAll();})); root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().tasks[idx]=tasks.filter(t=>t.id!==el.dataset.taskDelete);touchWeek();renderAll();})); root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveComment);const input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(task&&input){task.comment=input.value.trim();touchWeek();renderAll();toast('피드백을 저장했어요.');}})); const addTask=()=>{const input=$('taskInput');const taskText=input.value.trim();if(!taskText){toast('할 일을 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.tasks[idx]))week.tasks[idx]=[];week.tasks[idx].push({id:uid(),text:taskText,done:false,comment:''});touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();}; $('addTaskButton').addEventListener('click',addTask); $('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}}); $('taskForm').addEventListener('submit',e=>e.preventDefault()); }
   function renderHistory() {
-    const entries=Object.keys(state.weeks).filter(key=>{const w=state.weeks[key];return (w.slots||[]).some(Boolean)||Object.values(w.tasks||{}).some(tasks=>Array.isArray(tasks)&&tasks.length>0);}).sort((a,b)=>b.localeCompare(a));
+    const entries=Object.keys(state.weeks).filter(key=>{const w=state.weeks[key];return (w.slots||[]).some(Boolean)||Object.values(w.tasks||{}).some(tasks=>Array.isArray(tasks)&&tasks.length>0)||Object.values(w.goals||{}).some(goals=>Array.isArray(goals)&&goals.length>0);}).sort((a,b)=>b.localeCompare(a));
     if(!entries.length){$('historyList').innerHTML='<div class="empty-history">아직 기록이 없어요.<br>블럭을 배정하거나 할 일을 추가하면 자동으로 기록돼요.</div>';return;}
     $('historyList').innerHTML=entries.slice(0,8).map(key=>{
       const w=state.weeks[key]; const count=(w.slots||[]).filter(Boolean).length; const isCurrent=key===state.currentWeek;
@@ -486,15 +514,17 @@ const googleProvider = new GoogleAuthProvider();
   $('prevWeek').addEventListener('click',()=>{state.currentWeek=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),-7));ensureWeek(state.currentWeek);persist();renderAll();});
   $('nextWeek').addEventListener('click',()=>{state.currentWeek=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),7));ensureWeek(state.currentWeek);persist();renderAll();});
   $('thisWeek').addEventListener('click',()=>{state.currentWeek=weekKey(new Date());ensureWeek(state.currentWeek);persist();renderAll();});
-  $('copyPrev').addEventListener('click',()=>{const prev=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),-7));if(!state.weeks[prev]){toast('복사할 지난주 기록이 없어요.');return;}state.weeks[state.currentWeek]={slots:clone(state.weeks[prev].slots),tasks:clone(state.weeks[prev].tasks||{}),updatedAt:new Date().toISOString()};persist();renderAll();toast('지난주 계획을 복사했어요.');});
-  $('clearWeek').addEventListener('click',()=>openConfirm(()=>{currentWeek().slots=Array(42).fill(null);currentWeek().tasks={};selectedTaskSlot=null;touchWeek();renderAll();toast('이번 주 시간표와 체크리스트를 비웠어요.');}));
+  $('copyPrev').addEventListener('click',()=>{const prev=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),-7));if(!state.weeks[prev]){toast('복사할 지난주 기록이 없어요.');return;}state.weeks[state.currentWeek]={slots:clone(state.weeks[prev].slots),tasks:clone(state.weeks[prev].tasks||{}),goals:clone(state.weeks[prev].goals||{}),updatedAt:new Date().toISOString()};persist();renderAll();toast('지난주 계획을 복사했어요.');});
+  $('clearWeek').addEventListener('click',()=>openConfirm(()=>{currentWeek().slots=Array(42).fill(null);currentWeek().tasks={};currentWeek().goals={};selectedTaskSlot=null;touchWeek();renderAll();toast('이번 주 시간표와 목표를 비웠어요.');}));
   function openConfirm(fn){pendingConfirm=fn;$('confirmModal').classList.add('open');}
   $('modalCancel').addEventListener('click',()=>{$('confirmModal').classList.remove('open');pendingConfirm=null;});
   $('modalConfirm').addEventListener('click',()=>{$('confirmModal').classList.remove('open');if(pendingConfirm)pendingConfirm();pendingConfirm=null;});
   $('confirmModal').addEventListener('click',e=>{if(e.target===$('confirmModal'))$('modalCancel').click();});
   $('taskModalClose').addEventListener('click',()=>$('taskModal').classList.remove('open'));
   $('taskModal').addEventListener('click',e=>{if(e.target===$('taskModal'))$('taskModal').classList.remove('open');});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')$('taskModal').classList.remove('open');});
+  $('goalModalClose').addEventListener('click',()=>$('goalModal').classList.remove('open'));
+  $('goalModal').addEventListener('click',e=>{if(e.target===$('goalModal'))$('goalModal').classList.remove('open');});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('taskModal').classList.remove('open');$('goalModal').classList.remove('open');}});
   // 테스트용 기존 localStorage 데이터는 가져오지 않고 새 시간표로 시작합니다.
   ensureWeek(state.currentWeek);
   renderPalette();renderAll();
