@@ -10,7 +10,8 @@
 <meta property="og:description" content="한 주의 시간을 블럭으로 계획하고, 목표와 실행 피드백을 기록해 보세요.">
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23344d43'/%3E%3Crect x='13' y='13' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='35' y='13' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='13' y='35' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='35' y='35' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3C/svg%3E">
-<title>Timeblock</title>
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<title>Timeblock | 주간 시간 블럭 플래너</title>
 <style>
 :root {
   color-scheme: light dark;
@@ -140,8 +141,10 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .side .panel-head { padding:15px 16px; }
 .form { padding:15px 16px 16px; }
 .type-panel { position:relative; overflow:visible; }
-.type-create-popover { position:absolute; z-index:6; top:56px; right:12px; width:min(285px,calc(100% - 24px)); padding:15px 16px 16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); box-shadow:0 14px 38px #0002; }
+.type-create-popover { position:fixed; z-index:100; top:50%; left:50%; right:auto; transform:translate(-50%,-50%); width:min(420px,calc(100vw - 28px)); max-height:calc(100dvh - 32px); overflow-y:auto; overscroll-behavior:contain; padding:18px; border:1px solid var(--line); border-radius:14px; background:var(--surface); box-shadow:0 18px 60px #0005; }
 .type-create-popover[hidden] { display:none; }
+.type-delete { display:none; }
+.type-create-popover:not([hidden])::before { content:""; position:fixed; inset:0; z-index:-1; background:#12181270; }
 .type-panel .panel-head { border-radius:var(--radius) var(--radius) 0 0; align-items:center; flex-wrap:nowrap; gap:8px; }
 .type-panel .panel-head > div { min-width:0; flex:1; }
 .type-panel #toggleAddType { flex-shrink:0; white-space:nowrap; padding:9px 11px; }
@@ -225,7 +228,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
             <input class="name-input" id="typeName" maxlength="24" placeholder="예: 공부, 운동, 휴식" autocomplete="off">
             <div class="field-label" style="margin-top:14px">색상 선택</div>
             <div class="palette" id="palette"></div>
-            <div class="add-row"><button class="btn primary" id="addType">+ 블럭 종류 추가</button><button class="btn" id="cancelEdit" style="display:none">취소</button></div>
+            <div class="add-row"><button class="btn primary" id="addType">+ 블럭 종류 추가</button><button class="btn" id="cancelEdit" style="display:none">취소</button><button class="btn" id="deleteType" type="button" style="display:none">블럭 삭제</button></div>
           </div>
           <div class="type-list" id="typeList"></div>
           <button class="type-more" id="toggleMoreTypes" type="button" hidden>나머지 블럭 더보기 ↓</button>
@@ -268,7 +271,7 @@ const db = getFirestore(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 
 (() => {
-  const COLORS = ['#B8D4F8','#F4C7B8','#C7E4CB','#E9D3F4','#F4E1A3','#BDE4E3','#D6D9DF','#F2C8DA','#D8D0B8','#BFC7F2','#F0D0A8','#C8D8C5','#A9D2E8','#F6B8A8','#A8D5B5','#D8B9F0','#E8CF78','#8ED4CF','#C1C7D1','#E8AFC8','#C6B89C','#9DAAE8','#E7B878','#AFC5A5','#7FB0D6','#E58E83','#80B88D','#B992D8','#D8B94E','#68BDB5','#A2AAB8','#D78BAE','#B4A17D','#7887D0','#D89A52','#7D9B72'];
+  const COLORS = ['#F06B6B','#F28C45','#E9B83F','#A9BD35','#55A96B','#27A88A','#25A9B8','#398CCB','#5269C8','#8260C6','#B05AB5','#D65D91','#C65B55','#A96B42','#7E8B45','#397F69','#347D91','#526B91','#8C5E86','#B77B37','#F2A3A3','#F4BE8A','#E9D77D','#B9D58B','#8BCBA5','#83D0C7','#86C5E8','#91A9EA','#B6A0E8','#D5A0D1','#D98AAB','#B6A69A','#87949E','#D0B66A','#78A5A0','#A7B5C9'];
   const DAYS = ['월','화','수','목','금','토','일'];
   const STORAGE_KEY = 'block-planner-prototype-v1';
   let chosenColor = COLORS[0];
@@ -284,6 +287,8 @@ const googleProvider = new GoogleAuthProvider();
   let cloudReady = false;
   let unsubscribeCloud = null;
   let saveTimer = null;
+  let queuedRemoteState = null;
+  let remoteApplyScheduled = false;
   const $ = id => document.getElementById(id);
   const clone = x => JSON.parse(JSON.stringify(x));
   const uid = () => 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -320,6 +325,29 @@ const googleProvider = new GoogleAuthProvider();
       }
     }, 350);
   }
+
+  function applyRemoteState(remote) {
+    if (!remote || !Array.isArray(remote.types) || !remote.weeks) return;
+    queuedRemoteState = null;
+    state = remote;
+    if (!state.currentWeek) state.currentWeek = weekKey(new Date());
+    ensureWeek(state.currentWeek);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    renderPalette();
+    renderAll();
+    $('syncLabel').textContent = '● 다른 기기와 동기화됨';
+  }
+
+  document.addEventListener('focusout', () => {
+    if (remoteApplyScheduled) return;
+    remoteApplyScheduled = true;
+    setTimeout(() => {
+      remoteApplyScheduled = false;
+      const active = document.activeElement;
+      const stillEditing = active && (active.matches('input, textarea, select, [contenteditable="true"]') || active.closest('[contenteditable="true"]'));
+      if (!stillEditing && queuedRemoteState) applyRemoteState(queuedRemoteState);
+    }, 0);
+  });
 
   function setFreshState() {
     state = { types: [], weeks: {}, currentWeek: weekKey(new Date()) };
@@ -360,12 +388,17 @@ const googleProvider = new GoogleAuthProvider();
         if (!snap.exists() || snap.metadata.hasPendingWrites || !cloudReady) return;
         const remote = snap.data().state;
         if (!remote || !Array.isArray(remote.types) || !remote.weeks) return;
-        state = remote;
-        if (!state.currentWeek) state.currentWeek = weekKey(new Date());
-        ensureWeek(state.currentWeek);
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-        renderPalette(); renderAll();
-        $('syncLabel').textContent = '● 다른 기기와 동기화됨';
+        // Firestore may echo this tab's own write. Do not rebuild the UI when nothing changed.
+        if (JSON.stringify(remote) === JSON.stringify(state)) return;
+        // Keep the active editor alive while the user is typing. Apply a genuinely newer
+        // remote version only after focus leaves all editable fields.
+        const active = document.activeElement;
+        if (active && (active.matches('input, textarea, select, [contenteditable="true"]') || active.closest('[contenteditable="true"]'))) {
+          queuedRemoteState = remote;
+          $('syncLabel').textContent = '● 입력 중 · 동기화 대기';
+          return;
+        }
+        applyRemoteState(remote);
       }, error => {
         console.error('Firestore 실시간 동기화 실패:', error);
         $('syncLabel').textContent = '실시간 동기화 실패';
@@ -486,7 +519,24 @@ const googleProvider = new GoogleAuthProvider();
     const addGoal=()=>{const input=$('goalInput');const value=input.value.trim();if(!value){toast('목표를 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.goals[type.id]))week.goals[type.id]=[];week.goals[type.id].push({id:uid(),text:value,done:false,comment:''});touchWeek();renderStats();renderGoals();$('goalInput').focus();};
     $('addGoalButton').addEventListener('click',addGoal);$('goalInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addGoal();}});$('goalForm').addEventListener('submit',e=>e.preventDefault());
   }
-  function renderTasks() { const root=$('taskContent'); const idx=selectedTaskSlot; const type=idx===null?null:state.types.find(t=>t.id===currentWeek().slots[idx]); if(idx===null||!type){root.innerHTML='<div class="task-empty">시간표에서 배정된 블럭을 선택하면 해당 블럭의 체크리스트를 관리할 수 있어요.</div>';return;} const tasks=(currentWeek().tasks||{})[idx]||[]; const day=DAYS[idx%7]; const block=Math.floor(idx/7)+1; root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(block).padStart(2,'0')} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label>${t.comment?`<button class="task-comment-toggle" type="button" data-edit-comment="${t.id}">수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}" aria-expanded="false">피드백</button>`}<button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}<button type="button" data-edit-comment="${t.id}">수정</button></div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이 블럭에 등록한 할 일이 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="이 블럭에서 할 일 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`; root.querySelectorAll('[data-toggle-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-feedback-panel="${el.dataset.toggleComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();})); root.querySelectorAll('[data-edit-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editComment;const panel=root.querySelector(`[data-feedback-panel="${id}"]`);const display=root.querySelector(`[data-comment-display="${id}"]`);if(panel&&display){panel.hidden=false;display.hidden=true;panel.querySelector('textarea').focus();}})); root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const task=tasks.find(t=>t.id===el.dataset.taskCheck);if(task)task.done=el.checked;touchWeek();renderAll();})); root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().tasks[idx]=tasks.filter(t=>t.id!==el.dataset.taskDelete);touchWeek();renderAll();})); root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveComment);const input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(task&&input){task.comment=input.value.trim();touchWeek();renderAll();toast('피드백을 저장했어요.');}})); const addTask=()=>{const input=$('taskInput');const taskText=input.value.trim();if(!taskText){toast('할 일을 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.tasks[idx]))week.tasks[idx]=[];week.tasks[idx].push({id:uid(),text:taskText,done:false,comment:''});touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();}; $('addTaskButton').addEventListener('click',addTask); $('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}}); $('taskForm').addEventListener('submit',e=>e.preventDefault()); }
+  function renderTasks() {
+    const root=$('taskContent');
+    const idx=selectedTaskSlot;
+    const type=idx===null?null:state.types.find(t=>t.id===currentWeek().slots[idx]);
+    if(idx===null||!type){root.innerHTML='<div class="task-empty">시간표에서 배정된 블럭을 선택하면 해당 블럭의 체크리스트를 관리할 수 있어요.</div>';return;}
+    const tasks=(currentWeek().tasks||{})[idx]||[];
+    const day=DAYS[idx%7];
+    const block=Math.floor(idx/7)+1;
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(block).padStart(2,'0')} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label><button class="task-comment-toggle" type="button" data-edit-task="${t.id}">내용 수정</button><button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}" aria-expanded="false">${t.comment?'피드백 수정':'피드백 작성'}</button><button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-feedback task-text-editor" data-task-edit-panel="${t.id}" hidden><input class="name-input" data-task-text="${t.id}" maxlength="120" value="${escapeHtml(t.text)}" aria-label="할 일 내용 수정"><button class="btn" type="button" data-save-task="${t.id}">저장</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}</div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">피드백 저장</button></div></div>`).join(''):'<div class="task-empty">이 블럭에 등록한 할 일이 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="이 블럭에서 할 일 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`;
+    root.querySelectorAll('[data-edit-task]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editTask;const panel=root.querySelector(`[data-task-edit-panel="${id}"]`);panel.hidden=false;panel.querySelector('input').focus();}));
+    root.querySelectorAll('[data-save-task]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveTask);const input=root.querySelector(`[data-task-text="${el.dataset.saveTask}"]`);if(task&&input&&input.value.trim()){task.text=input.value.trim();touchWeek();renderTasks();renderGrid();toast('할 일 내용을 수정했어요.');}}));
+    root.querySelectorAll('[data-toggle-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-feedback-panel="${el.dataset.toggleComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();}));
+    root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const task=tasks.find(t=>t.id===el.dataset.taskCheck);if(task)task.done=el.checked;touchWeek();renderTasks();renderGrid();}));
+    root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().tasks[idx]=tasks.filter(t=>t.id!==el.dataset.taskDelete);touchWeek();renderAll();}));
+    root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveComment);const input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(task&&input){task.comment=input.value.trim();touchWeek();renderTasks();toast('피드백을 저장했어요.');}}));
+    const addTask=()=>{const input=$('taskInput');const taskText=input.value.trim();if(!taskText){toast('할 일을 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.tasks[idx]))week.tasks[idx]=[];week.tasks[idx].push({id:uid(),text:taskText,done:false,comment:''});touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();};
+    $('addTaskButton').addEventListener('click',addTask);$('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});$('taskForm').addEventListener('submit',e=>e.preventDefault());
+  }
   function renderHistory() {
     const entries=Object.keys(state.weeks).filter(key=>{const w=state.weeks[key];return (w.slots||[]).some(Boolean)||Object.values(w.tasks||{}).some(tasks=>Array.isArray(tasks)&&tasks.length>0)||Object.values(w.goals||{}).some(goals=>Array.isArray(goals)&&goals.length>0);}).sort((a,b)=>b.localeCompare(a));
     if(!entries.length){$('historyList').innerHTML='<div class="empty-history">아직 기록이 없어요.<br>블럭을 배정하거나 할 일을 추가하면 자동으로 기록돼요.</div>';return;}
@@ -498,11 +548,23 @@ const googleProvider = new GoogleAuthProvider();
     $('historyList').querySelectorAll('[data-open-week]').forEach(b=>b.addEventListener('click',()=>{state.currentWeek=b.dataset.openWeek;ensureWeek(state.currentWeek);persist();renderAll();toast('주간 기록을 열었어요.');}));
   }
   function renderAll() { $('weekLabel').textContent=weekLabel(state.currentWeek); renderGrid(); renderTypes(); renderStats(); renderHistory(); renderTasks(); }
-  function startEdit(id) { const t=state.types.find(x=>x.id===id); if(!t)return; editingTypeId=id; chosenColor=t.color; $('typeName').value=t.name; $('addType').textContent='변경 저장'; $('cancelEdit').style.display='inline-block'; openTypePopover(); renderPalette(); $('typeName').focus(); }
+  function startEdit(id) { const t=state.types.find(x=>x.id===id); if(!t)return; editingTypeId=id; chosenColor=t.color; $('typeName').value=t.name; $('addType').textContent='변경 저장'; $('cancelEdit').style.display='inline-block'; $('deleteType').style.display='inline-block'; openTypePopover(); renderPalette(); $('typeName').focus(); }
   function openTypePopover() { $('typeCreatePopover').hidden=false; $('toggleAddType').setAttribute('aria-expanded','true'); }
   function closeTypePopover() { $('typeCreatePopover').hidden=true; $('toggleAddType').setAttribute('aria-expanded','false'); }
-  function cancelEdit() { editingTypeId=null; $('typeName').value=''; $('addType').textContent='+ 블럭 종류 추가'; $('cancelEdit').style.display='none'; closeTypePopover(); renderPalette(); }
-  $('toggleAddType').addEventListener('click',()=>{if(!$('typeCreatePopover').hidden){closeTypePopover();return;}editingTypeId=null;$('typeName').value='';$('addType').textContent='+ 블럭 종류 추가';$('cancelEdit').style.display='none';openTypePopover();renderPalette();$('typeName').focus();});
+  function cancelEdit() { editingTypeId=null; $('typeName').value=''; $('addType').textContent='+ 블럭 종류 추가'; $('cancelEdit').style.display='none'; $('deleteType').style.display='none'; closeTypePopover(); renderPalette(); }
+  $('toggleAddType').addEventListener('click',()=>{if(!$('typeCreatePopover').hidden){closeTypePopover();return;}editingTypeId=null;$('typeName').value='';$('addType').textContent='+ 블럭 종류 추가';$('cancelEdit').style.display='none';$('deleteType').style.display='none';openTypePopover();renderPalette();$('typeName').focus();});
+  $('deleteType').addEventListener('click',()=>{
+    const id=editingTypeId;const type=state.types.find(t=>t.id===id);if(!type)return;
+    if(!confirm(`'${type.name}' 블럭 종류를 삭제할까요? 모든 주간 시간표 배정과 해당 할 일·목표도 함께 삭제됩니다.`))return;
+    state.types=state.types.filter(t=>t.id!==id);
+    for(const week of Object.values(state.weeks)){
+      (week.slots||[]).forEach((slot,i)=>{if(slot===id){week.slots[i]=null;if(week.tasks)delete week.tasks[i];}});
+      if(week.goals)delete week.goals[id];
+    }
+    if(selectedTypeId===id)selectedTypeId=null;
+    if(selectedTaskSlot!==null&&!currentWeek().slots[selectedTaskSlot])selectedTaskSlot=null;
+    cancelEdit();persist();renderAll();toast('블럭 종류를 삭제했어요.');
+  });
   $('addType').addEventListener('click',()=>{
     const name=$('typeName').value.trim(); if(!name){toast('블럭 이름을 입력해 주세요.');$('typeName').focus();return;}
     if(editingTypeId){const t=state.types.find(t=>t.id===editingTypeId);if(t){t.name=name;t.color=chosenColor;} cancelEdit(); toast('블럭 종류를 수정했어요.');}
