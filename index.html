@@ -463,7 +463,7 @@ const googleProvider = new GoogleAuthProvider();
     $('palette').innerHTML = COLORS.slice(0,35).map(c=>`<button class="color-choice ${c===chosenColor?'selected':''}" type="button" data-color="${c}" aria-label="색상 ${c}" aria-pressed="${c===chosenColor}" style="background:${c}"></button>`).join('') + '<button class="color-choice add-custom" type="button" id="openCustomColor" aria-label="사용자 지정 색상 선택" title="직접 색상 선택">+</button>';
     $('palette').querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{chosenColor=b.dataset.color;renderPalette();}));
     $('openCustomColor').addEventListener('click',()=>{$('customColor').value=chosenColor;$('customColor').click();});
-    $('customColor').value=chosenColor;$('customColorValue').textContent=chosenColor.toUpperCase();$('customColor').oninput=e=>{chosenColor=e.target.value.toUpperCase();$('customColorValue').textContent=chosenColor;renderPalette();};
+    $('customColor').value=chosenColor;
   }
   $('customColor').addEventListener('input',e=>{chosenColor=e.target.value.toUpperCase();renderPalette();});
   function renderTypes() {
