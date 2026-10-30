@@ -11,7 +11,7 @@
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23344d43'/%3E%3Crect x='13' y='13' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='35' y='13' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='13' y='35' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='35' y='35' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<title>Timeblock | 주간 시간 블럭 플래너</title>
+<title>Timeblock</title>
 <style>
 :root {
   color-scheme: light dark;
@@ -133,6 +133,9 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .slot.drag-over { border:2px dashed var(--site-primary); transform:scale(.98); background:var(--site-secondary); }
 .slot.filled { border:1px solid transparent; color:#26302a; cursor:grab; }
 .slot.filled:active { cursor:grabbing; }
+.slot.group-start { border-bottom-left-radius:3px; border-bottom-right-radius:3px; margin-bottom:-5px; z-index:1; }
+.slot.group-middle { border-radius:3px; margin-top:-5px; margin-bottom:-5px; z-index:1; }
+.slot.group-end { border-top-left-radius:3px; border-top-right-radius:3px; margin-top:-5px; z-index:1; }
 .slot .slot-name { font-size:11px; line-height:1.25; font-weight:800; overflow-wrap:anywhere; }
 .slot .remove { position:absolute; top:2px; right:3px; width:18px; height:18px; border:0; border-radius:50%; background:#ffffffa8; color:#333; font-size:13px; line-height:1; opacity:0; }
 .slot.filled:hover .remove, .slot.filled:focus-within .remove { opacity:1; }
@@ -144,18 +147,17 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .type-create-popover { position:fixed; z-index:100; top:50%; left:50%; right:auto; transform:translate(-50%,-50%); width:min(420px,calc(100vw - 28px)); max-height:calc(100dvh - 32px); overflow-y:auto; overscroll-behavior:contain; padding:18px; border:1px solid var(--line); border-radius:14px; background:var(--surface); box-shadow:0 18px 60px #0005; }
 .type-create-popover[hidden] { display:none; }
 .type-delete { display:none; }
-.type-create-popover:not([hidden])::before { content:""; position:fixed; inset:0; z-index:-1; background:#12181270; }
+.type-create-popover:not([hidden])::before { content:""; position:fixed; inset:0; z-index:-1; background:#12181238; }
 .type-panel .panel-head { border-radius:var(--radius) var(--radius) 0 0; align-items:center; flex-wrap:nowrap; gap:8px; }
 .type-panel .panel-head > div { min-width:0; flex:1; }
 .type-panel #toggleAddType { flex-shrink:0; white-space:nowrap; padding:9px 11px; }
 .field-label { display:block; color:var(--muted); font-size:11px; font-weight:750; margin-bottom:7px; }
 .name-input { width:100%; border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:10px; padding:11px 12px; outline:none; }
-.palette { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin:10px 0 14px; }
-.color-choice { width:100%; aspect-ratio:1; border:2px solid transparent; border-radius:9px; position:relative; }
+.palette { display:grid; grid-template-columns:repeat(18,minmax(0,1fr)); gap:5px; margin:10px 0 14px; }
+.color-choice { width:100%; aspect-ratio:1; min-width:0; border:2px solid transparent; border-radius:6px; position:relative; padding:0; }
+.color-choice.add-custom { display:grid; place-items:center; background:var(--surface-soft); color:var(--text); border:1px dashed var(--muted); font-size:18px; font-weight:500; }
 .color-choice.selected { outline:2px solid var(--text); outline-offset:2px; }
-.custom-color-row { display:flex; align-items:center; gap:10px; margin:0 0 14px; }
-.custom-color-row input[type=color] { width:48px; height:38px; padding:2px; border:1px solid var(--line); border-radius:9px; background:var(--surface); cursor:pointer; }
-.custom-color-row span { color:var(--muted); font-size:12px; font-weight:700; font-variant-numeric:tabular-nums; }
+
 .task-icon-btn { flex:0 0 30px; width:30px; height:30px; display:inline-grid; place-items:center; border:1px solid var(--line); border-radius:8px; background:var(--surface-soft); color:var(--text); padding:0; font-size:15px; line-height:1; }
 .task-icon-btn:hover { border-color:var(--site-primary); background:var(--site-secondary); }
 .task-icon-btn[aria-label] { cursor:pointer; }
@@ -185,9 +187,9 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .empty-history { color:var(--muted); font-size:11px; padding:8px; line-height:1.6; }
 .toast { position:fixed; bottom:18px; left:50%; transform:translate(-50%,15px); opacity:0; pointer-events:none; background:#26352c; color:#fff; border-radius:12px; padding:11px 15px; font-size:12px; box-shadow:0 8px 30px #0002; transition:.2s; z-index:10; }
 .toast.show { opacity:1; transform:translate(-50%,0); }
-.modal-backdrop { position:fixed; inset:0; background:#12181270; display:none; align-items:center; justify-content:center; padding:18px; z-index:20; }
+.modal-backdrop { position:fixed; inset:0; background:#12181238; display:none; align-items:center; justify-content:center; padding:18px; z-index:20; }
 .modal-backdrop.open { display:flex; }
-.modal { width:min(420px,100%); background:var(--surface); color:var(--text); border-radius:18px; padding:22px; box-shadow:0 24px 70px #0003; }
+.modal { width:min(420px,100%); background:light-dark(#ffffff,#343a34); color:var(--text); border-radius:18px; padding:22px; box-shadow:0 24px 70px #0003; }
 .task-modal { width:min(520px,100%); max-height:min(82vh,720px); overflow:auto; }
 .task-modal .task-content { padding:8px 0 0; }
 .task-modal .task-heading strong { font-size:14px; }
@@ -196,7 +198,8 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
 .footer-note { margin-top:16px; color:var(--muted); font-size:11px; line-height:1.6; }
 @media (max-width:900px) { .layout { grid-template-columns:1fr; } .side { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; } .side .history-panel { grid-column:1/-1; } }
-@media (max-width:600px) { .topbar { align-items:flex-start; flex-direction:column; padding:17px 15px; } .top-actions { justify-content:flex-start; } .top-actions .btn { padding:8px 10px; } main { padding:19px 10px 30px; } .intro { align-items:flex-start; flex-direction:column; } h2 { font-size:25px; } .week-switch { align-self:stretch; justify-content:space-between; gap:3px; } .week-label { flex:1; font-size:11px; letter-spacing:-.03em; } .week-switch button { flex:0 0 30px; width:30px; } .week-switch #thisWeek { flex:0 0 auto; width:auto; padding:8px 7px !important; font-size:11px; } .summary { grid-template-columns:1fr; gap:8px; } .stat:first-child { grid-column:auto; } .stat { padding:13px; min-height:87px; } .stat-number strong { font-size:26px; } .layout { display:flex; flex-direction:column; min-width:0; width:100%; } .calendar-panel { order:2; width:100%; min-width:0; } .side { order:1; display:flex; flex-direction:column; width:100%; min-width:0; } .side > .panel { width:100%; max-width:100%; min-width:0; align-self:stretch; } .side .type-panel { order:1; overflow:hidden; } .side .history-panel { order:2; grid-column:auto; } .type-list { box-sizing:border-box; flex-direction:row; width:100%; max-width:100%; min-width:0; overflow-x:auto; overscroll-behavior-x:contain; padding:10px 12px 13px; gap:8px; -webkit-overflow-scrolling:touch; } .type-item { flex:0 0 auto; width:max-content; max-width:170px; padding:9px 10px; } .type-name { flex:0 1 auto; white-space:nowrap; max-width:95px; overflow:hidden; text-overflow:ellipsis; } .type-count { flex:0 0 auto; } .type-more { margin-bottom:10px; } .panel-head { padding:14px; } .grid-scroll { padding:8px; overflow-x:hidden; } .week-grid { grid-template-columns:25px repeat(7,minmax(0,1fr)); min-width:0; gap:3px; } .grid-corner { min-height:40px; } .day-head { min-width:0; min-height:40px; padding:7px 1px; } .day-head .day { font-size:11px; } .day-head .date { font-size:9px; } .row-label { min-height:58px; padding-top:8px; font-size:8px; letter-spacing:-.04em; } .slot { min-width:0; min-height:58px; padding:3px 1px; border-radius:7px; } .slot .slot-name { font-size:9px; line-height:1.15; overflow-wrap:anywhere; word-break:break-word; } .task-count { right:1px; bottom:1px; padding:1px 3px; font-size:8px; } .slot .remove { top:0; right:0; width:15px; height:15px; font-size:11px; } .grid-foot { padding:0 12px 13px; flex-direction:column; gap:5px; } }
+@media (max-width:600px) { .topbar { align-items:flex-start; flex-direction:column; padding:17px 15px; } .top-actions { justify-content:flex-start; } .top-actions .btn { padding:8px 10px; } main { padding:19px 10px 30px; } .intro { align-items:flex-start; flex-direction:column; } h2 { font-size:25px; } .week-switch { align-self:stretch; justify-content:space-between; gap:3px; } .week-label { flex:1; font-size:11px; letter-spacing:-.03em; } .week-switch button { flex:0 0 30px; width:30px; } .week-switch #thisWeek { flex:0 0 auto; width:auto; padding:8px 7px !important; font-size:11px; } .summary { grid-template-columns:1fr; gap:8px; } .stat:first-child { grid-column:auto; } .stat { padding:13px; min-height:87px; } .stat-number strong { font-size:26px; } .layout { display:flex; flex-direction:column; min-width:0; width:100%; } .calendar-panel { order:2; width:100%; min-width:0; } .side { order:1; display:flex; flex-direction:column; width:100%; min-width:0; } .side > .panel { width:100%; max-width:100%; min-width:0; align-self:stretch; } .side .type-panel { order:1; overflow:hidden; } .side .history-panel { order:2; grid-column:auto; } .type-list { box-sizing:border-box; flex-direction:row; width:100%; max-width:100%; min-width:0; overflow-x:auto; overscroll-behavior-x:contain; padding:10px 12px 13px; gap:8px; -webkit-overflow-scrolling:touch; } .type-item { flex:0 0 auto; width:max-content; max-width:170px; padding:9px 10px; } .type-name { flex:0 1 auto; white-space:nowrap; max-width:95px; overflow:hidden; text-overflow:ellipsis; } .type-count { flex:0 0 auto; } .type-more { margin-bottom:10px; } .panel-head { padding:14px; } .grid-scroll { padding:8px; overflow-x:hidden; } .week-grid { grid-template-columns:25px repeat(7,minmax(0,1fr)); min-width:0; gap:3px; } .grid-corner { min-height:40px; } .day-head { min-width:0; min-height:40px; padding:7px 1px; } .day-head .day { font-size:11px; } .day-head .date { font-size:9px; } .row-label { min-height:58px; padding-top:8px; font-size:8px; letter-spacing:-.04em; } .slot { min-width:0; min-height:58px; padding:3px 1px; border-radius:7px; } .slot.group-start { margin-bottom:-3px; } .slot.group-middle { margin-top:-3px; margin-bottom:-3px; } .slot.group-end { margin-top:-3px; }
+.slot .slot-name { font-size:9px; line-height:1.15; overflow-wrap:anywhere; word-break:break-word; } .task-count { right:1px; bottom:1px; padding:1px 3px; font-size:8px; } .slot .remove { top:0; right:0; width:15px; height:15px; font-size:11px; } .grid-foot { padding:0 12px 13px; flex-direction:column; gap:5px; } }
 </style>
 </head>
 <body>
@@ -220,13 +223,13 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
       <div class="week-switch"><button id="prevWeek" aria-label="이전 주">‹</button><div class="week-label" id="weekLabel">날짜 불러오는 중</div><button id="nextWeek" aria-label="다음 주">›</button><button id="thisWeek" class="btn" style="padding:8px 10px">이번 주</button></div>
     </section>
     <section class="summary" aria-label="주간 블럭 배정 현황">
-      <div class="stat"><div class="stat-label"><span class="mini-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>주간 배정 현황 · 가용 블럭</div><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭 배정 · 42블럭 남음</span></div><div class="progress"><span id="progressBar"></span></div><div class="allocation-list" id="allocationList"></div></div>
+      <div class="stat"><div class="stat-label"><span class="mini-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>주간 배정 현황 / 가용 블럭</div><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭 배정 · 42블럭 남음</span></div><div class="progress"><span id="progressBar"></span></div><div class="allocation-list" id="allocationList"></div></div>
     </section>
     <section class="layout">
       <div class="panel calendar-panel">
         <div class="panel-head"><div><h3>주간 블럭 시간표</h3><p>빈 칸을 누르면 선택한 블럭이 들어가요 · 끌어서 옮길 수도 있어요</p></div></div>
         <div class="grid-scroll"><div class="week-grid" id="weekGrid" aria-label="7일 42블럭 시간표"></div></div>
-        <div class="grid-foot"><span>※ 현재는 하루를 6개의 블럭으로 나눈 계획표예요.</span><span id="syncLabel">● 로그인 전 · 이 브라우저에 저장</span></div>
+        <div class="grid-foot"><span id="syncLabel">● 로그인 전 · 이 브라우저에 저장</span></div>
       </div>
       <aside class="side">
         <section class="panel type-panel">
@@ -235,7 +238,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
             <label class="field-label" for="typeName">블럭 이름</label>
             <input class="name-input" id="typeName" maxlength="24" placeholder="예: 공부, 운동, 휴식" autocomplete="off">
             <div class="field-label" style="margin-top:14px">색상 선택</div>
-            <div class="palette" id="palette"></div><label class="field-label" for="customColor">직접 색상 선택</label><div class="custom-color-row"><input id="customColor" type="color" value="#F4A7A7" aria-label="원하는 블럭 색상 선택"><span id="customColorValue">#F4A7A7</span></div>
+            <div class="palette" id="palette"></div><input id="customColor" type="color" value="#F4A7A7" aria-label="원하는 블럭 색상 선택" style="position:fixed;left:-100px;width:1px;height:1px;opacity:0;pointer-events:none">
             <div class="add-row"><button class="btn primary" id="addType">+ 블럭 종류 추가</button><button class="btn" id="cancelEdit" style="display:none">취소</button><button class="btn" id="deleteType" type="button" style="display:none">블럭 삭제</button></div>
           </div>
           <div class="type-list" id="typeList"></div>
@@ -247,7 +250,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
         </section>
       </aside>
     </section>
-    <p class="footer-note">Google 로그인 시 PC와 아이폰에서 같은 시간표를 사용할 수 있어요. 변경 내용은 자동 저장됩니다.</p>
+    
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -457,10 +460,12 @@ const googleProvider = new GoogleAuthProvider();
   function weekLabel(key) { const {start,end}=weekRange(key); return `${fmtDate(start,true)} — ${fmtDate(end, start.getFullYear()!==end.getFullYear())}`; }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function renderPalette() {
-    $('palette').innerHTML = COLORS.map(c=>`<button class="color-choice ${c===chosenColor?'selected':''}" type="button" data-color="${c}" aria-label="색상 ${c}" aria-pressed="${c===chosenColor}" style="background:${c}"></button>`).join('');
-    $('palette').querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{chosenColor=b.dataset.color;$('customColor').value=chosenColor;$('customColorValue').textContent=chosenColor.toUpperCase();renderPalette();}));
+    $('palette').innerHTML = COLORS.slice(0,35).map(c=>`<button class="color-choice ${c===chosenColor?'selected':''}" type="button" data-color="${c}" aria-label="색상 ${c}" aria-pressed="${c===chosenColor}" style="background:${c}"></button>`).join('') + '<button class="color-choice add-custom" type="button" id="openCustomColor" aria-label="사용자 지정 색상 선택" title="직접 색상 선택">+</button>';
+    $('palette').querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{chosenColor=b.dataset.color;renderPalette();}));
+    $('openCustomColor').addEventListener('click',()=>{$('customColor').value=chosenColor;$('customColor').click();});
     $('customColor').value=chosenColor;$('customColorValue').textContent=chosenColor.toUpperCase();$('customColor').oninput=e=>{chosenColor=e.target.value.toUpperCase();$('customColorValue').textContent=chosenColor;renderPalette();};
   }
+  $('customColor').addEventListener('input',e=>{chosenColor=e.target.value.toUpperCase();renderPalette();});
   function renderTypes() {
     const list=$('typeList');
     const moreButton=$('toggleMoreTypes');
@@ -480,6 +485,23 @@ const googleProvider = new GoogleAuthProvider();
     list.querySelectorAll('[data-type]').forEach(el=>el.style.outline=el.dataset.type===selectedTypeId?'2px solid var(--site-primary)':'none');
   }
   $('toggleMoreTypes').addEventListener('click',()=>{showAllTypes=!showAllTypes;renderTypes();});
+  function groupSlots(index) {
+    const slots=currentWeek().slots, typeId=slots[index];
+    if(!typeId) return [index];
+    const col=index%7;
+    let first=index,last=index;
+    while(first-7>=col && slots[first-7]===typeId) first-=7;
+    while(last+7<42 && slots[last+7]===typeId) last+=7;
+    const out=[]; for(let i=first;i<=last;i+=7) out.push(i); return out;
+  }
+  function groupedTasks(index) {
+    const week=currentWeek(), group=groupSlots(index), anchor=group[0];
+    const merged=[]; const seen=new Set();
+    group.forEach(i=>(week.tasks[i]||[]).forEach(task=>{if(!seen.has(task.id)){seen.add(task.id);merged.push(task);}}));
+    week.tasks[anchor]=merged;
+    group.slice(1).forEach(i=>{delete week.tasks[i];});
+    return {group,anchor,tasks:merged};
+  }
   function renderGrid() {
     const grid=$('weekGrid'); const start=new Date(state.currentWeek+'T12:00:00'); const slots=currentWeek().slots;
     const todayKey=dateKey(new Date());
@@ -489,8 +511,11 @@ const googleProvider = new GoogleAuthProvider();
       html+=`<div class="row-label">BLOCK ${String(r+1).padStart(2,'0')}</div>`;
       for(let d=0;d<7;d++) {
         const idx=r*7+d; const type=state.types.find(t=>t.id===slots[idx]);
-        if(type) { const tasks=(currentWeek().tasks||{})[idx]||[]; const done=tasks.filter(t=>t.done).length; html+=`<div class="slot filled" tabindex="0" role="button" draggable="true" data-slot="${idx}" style="background:${type.color};${selectedTaskSlot===idx?'outline:3px solid var(--site-primary);outline-offset:1px;':''}" aria-label="${DAYS[d]}요일 블럭 ${r+1}: ${escapeHtml(type.name)}"><span class="slot-name">${escapeHtml(type.name)}</span>${tasks.length?`<span class="task-count">${done}/${tasks.length} ✓</span>`:''}<button class="remove" data-remove="${idx}" aria-label="블럭 비우기">×</button></div>`; }
-        else html+=`<div class="slot empty" tabindex="0" role="button" data-slot="${idx}" aria-label="${DAYS[d]}요일 블럭 ${r+1}, 비어 있음"><span style="font-size:18px;color:var(--muted);font-weight:300">+</span></div>`;
+        if(type) {
+          const {group,tasks}=groupedTasks(idx); const comments=tasks.filter(t=>t.comment&&t.comment.trim()).length;
+          const pos=group.indexOf(idx), groupClass=group.length>1?(pos===0?'group-start':pos===group.length-1?'group-end':'group-middle'):'';
+          html+=`<div class="slot filled ${groupClass}" tabindex="0" role="button" draggable="true" data-slot="${idx}" style="background:${type.color};${selectedTaskSlot===idx?'outline:3px solid var(--site-primary);outline-offset:1px;':''}" aria-label="${DAYS[d]}요일 블럭 ${r+1}: ${escapeHtml(type.name)}"><span class="slot-name">${escapeHtml(type.name)}</span>${comments?`<span class="task-count">⌁ ${comments}</span>`:''}<button class="remove" data-remove="${idx}" aria-label="블럭 비우기">×</button></div>`;
+        } else html+=`<div class="slot empty" tabindex="0" role="button" data-slot="${idx}" aria-label="${DAYS[d]}요일 블럭 ${r+1}, 비어 있음"><span style="font-size:18px;color:var(--muted);font-weight:300">+</span></div>`;
       }
     }
     grid.innerHTML=html;
@@ -513,13 +538,13 @@ const googleProvider = new GoogleAuthProvider();
   function assign(index,typeId) { if(!state.types.some(t=>t.id===typeId)) return; currentWeek().slots[index]=typeId; selectedTypeId=typeId; selectedTaskSlot=index; touchWeek(); renderAll(); }
   function moveSlot(from,to) { if(from===to)return; const slots=currentWeek().slots; const target=slots[to]; slots[to]=slots[from]; slots[from]=target || null; touchWeek(); renderAll(); }
   function touchWeek() { currentWeek().updatedAt=new Date().toISOString(); persist(); }
-  function renderStats() { const slots=currentWeek().slots; const count=slots.filter(Boolean).length; $('assignedCount').textContent=count; $('availabilityText').textContent=`/ 42 블럭 배정 · ${42-count}블럭 남음`; $('progressBar').style.width=(count/42*100)+'%'; const totals=state.types.map(type=>({type,count:slots.filter(id=>id===type.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count); $('allocationList').innerHTML=totals.length?totals.map(x=>{const goals=(currentWeek().goals||{})[x.type.id]||[];return `<button type="button" class="allocation-item" data-goal-type="${x.type.id}" aria-label="${escapeHtml(x.type.name)} 주간 목표 열기"><span class="allocation-dot" style="background:${x.type.color}"></span><div class="allocation-copy"><strong>${escapeHtml(x.type.name)}</strong><span class="allocation-detail">${x.count} / 42 블럭 배정</span><span class="allocation-goal">주간 목표 ${goals.filter(g=>g.done).length}/${goals.length}</span></div><span class="allocation-value">${Math.round(x.count/42*100)}%　›</span></button>`;}).join(''):'<div class="task-empty">아직 배정된 블럭이 없어요.</div>'; $('allocationList').querySelectorAll('[data-goal-type]').forEach(b=>b.addEventListener('click',()=>{selectedGoalTypeId=b.dataset.goalType;renderGoals();$('goalModal').classList.add('open');})); }
+  function renderStats() { const slots=currentWeek().slots; const count=slots.filter(Boolean).length; $('assignedCount').textContent=count; $('availabilityText').textContent=`/ 42 블럭 · ${42-count}블럭 남음`; $('progressBar').style.width=(count/42*100)+'%'; const totals=state.types.map(type=>({type,count:slots.filter(id=>id===type.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count); $('allocationList').innerHTML=totals.length?totals.map(x=>{const goals=(currentWeek().goals||{})[x.type.id]||[];return `<button type="button" class="allocation-item" data-goal-type="${x.type.id}" aria-label="${escapeHtml(x.type.name)} 주간 목표 열기"><span class="allocation-dot" style="background:${x.type.color}"></span><div class="allocation-copy"><strong>${escapeHtml(x.type.name)}</strong><span class="allocation-detail">${x.count} / 42 블럭</span><span class="allocation-goal">주간 목표 ${goals.filter(g=>g.done).length}/${goals.length}</span></div><span class="allocation-value">${Math.round(x.count/42*100)}%　›</span></button>`;}).join(''):'<div class="task-empty">아직 배정된 블럭이 없어요.</div>'; $('allocationList').querySelectorAll('[data-goal-type]').forEach(b=>b.addEventListener('click',()=>{selectedGoalTypeId=b.dataset.goalType;renderGoals();$('goalModal').classList.add('open');})); }
   function renderGoals() {
     const root=$('goalContent');
     const type=state.types.find(t=>t.id===selectedGoalTypeId);
     if(!type){root.innerHTML='<div class="task-empty">주간 배정 현황에서 블럭 종류를 선택해 주세요.</div>';return;}
     const goals=(currentWeek().goals||{})[type.id]||[];
-    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${escapeHtml(type.name)} · 이번 주 목표</strong><span>${goals.filter(g=>g.done).length}/${goals.length}개 완료</span></div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-entry"><div class="task-row ${g.done?'done':''}"><input type="checkbox" data-goal-check="${g.id}" ${g.done?'checked':''} aria-label="주간 목표 완료"><label>${escapeHtml(g.text)}</label><button class="task-icon-btn" type="button" data-edit-goal="${g.id}" aria-label="목표 내용 수정" title="목표 내용 수정">✎</button><button class="task-icon-btn" type="button" data-toggle-goal-comment="${g.id}" aria-label="피드백 ${g.comment?"수정":"작성"}" title="피드백 ${g.comment?"수정":"작성"}">▤</button><button class="task-delete" type="button" data-goal-delete="${g.id}" aria-label="목표 삭제">×</button></div><div class="task-feedback task-text-editor" data-goal-edit-panel="${g.id}" hidden><input class="name-input" data-goal-text="${g.id}" maxlength="120" value="${escapeHtml(g.text)}" aria-label="주간 목표 내용 수정"><button class="btn" type="button" data-save-goal-text="${g.id}">저장</button></div><div class="task-comment-display" data-goal-comment-display="${g.id}" ${g.comment?'':'hidden'}>${escapeHtml(g.comment||'')}<button class="task-icon-btn" type="button" data-edit-goal-comment="${g.id}" aria-label="피드백 수정" title="피드백 수정">✎</button></div><div class="task-feedback" data-goal-feedback-panel="${g.id}" hidden><textarea data-goal-comment="${g.id}" maxlength="1000" placeholder="목표 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(g.comment||'')}</textarea><button class="btn" type="button" data-save-goal-comment="${g.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이번 주 목표가 없어요. 아래에서 추가해 주세요.</div>'}</div><form class="task-add" id="goalForm"><input id="goalInput" maxlength="120" placeholder="이번 주에 달성할 목표 추가" aria-label="주간 목표 입력" autocomplete="off"><button class="btn primary" id="addGoalButton" type="button">추가</button></form>`;
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${escapeHtml(type.name)} · 이번 주 목표</strong><span>${goals.filter(g=>g.done).length}/${goals.length}개 완료</span></div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-entry"><div class="task-row ${g.done?'done':''}"><input type="checkbox" data-goal-check="${g.id}" ${g.done?'checked':''} aria-label="주간 목표 완료"><label>${escapeHtml(g.text)}</label><button class="task-icon-btn" type="button" data-edit-goal="${g.id}" aria-label="목표 내용 수정" title="목표 내용 수정">✎</button><button class="task-icon-btn" type="button" data-toggle-goal-comment="${g.id}" aria-label="피드백 ${g.comment?"수정":"작성"}" title="피드백 ${g.comment?"수정":"작성"}">⌁</button><button class="task-delete" type="button" data-goal-delete="${g.id}" aria-label="목표 삭제">×</button></div><div class="task-feedback task-text-editor" data-goal-edit-panel="${g.id}" hidden><input class="name-input" data-goal-text="${g.id}" maxlength="120" value="${escapeHtml(g.text)}" aria-label="주간 목표 내용 수정"><button class="btn" type="button" data-save-goal-text="${g.id}">저장</button></div><div class="task-comment-display" data-goal-comment-display="${g.id}" ${g.comment?'':'hidden'}>${escapeHtml(g.comment||'')}<button class="task-icon-btn" type="button" data-edit-goal-comment="${g.id}" aria-label="피드백 수정" title="피드백 수정">✎</button></div><div class="task-feedback" data-goal-feedback-panel="${g.id}" hidden><textarea data-goal-comment="${g.id}" maxlength="1000" placeholder="목표 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(g.comment||'')}</textarea><button class="btn" type="button" data-save-goal-comment="${g.id}">저장</button></div><div class="subtask-list">${(g.subtasks||[]).map(st=>`<div class="task-row ${st.done?'done':''}"><input type="checkbox" data-subtask-check="${g.id}:${st.id}" ${st.done?'checked':''}><label>${escapeHtml(st.text)}</label><button class="task-delete" type="button" data-subtask-delete="${g.id}:${st.id}">×</button></div>`).join('')}<form class="task-add" data-subtask-form="${g.id}"><input data-subtask-input="${g.id}" placeholder="세부 할 일 추가" maxlength="120"><button class="btn" type="submit">추가</button></form></div></div>`).join(''):'<div class="task-empty">이번 주 목표가 없어요. 아래에서 추가해 주세요.</div>'}</div><form class="task-add" id="goalForm"><input id="goalInput" maxlength="120" placeholder="이번 주에 달성할 목표 추가" aria-label="주간 목표 입력" autocomplete="off"><button class="btn primary" id="addGoalButton" type="button">추가</button></form>`;
     root.querySelectorAll('[data-edit-goal]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-goal-edit-panel="${el.dataset.editGoal}"]`);panel.hidden=false;panel.querySelector('input').focus();}));
     root.querySelectorAll('[data-save-goal-text]').forEach(el=>el.addEventListener('click',()=>{const goal=goals.find(g=>g.id===el.dataset.saveGoalText);const input=root.querySelector(`[data-goal-text="${el.dataset.saveGoalText}"]`);if(goal&&input&&input.value.trim()){goal.text=input.value.trim();touchWeek();renderGoals();renderStats();toast('주간 목표 내용을 수정했어요.');}}));
     root.querySelectorAll('[data-toggle-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-goal-feedback-panel="${el.dataset.toggleGoalComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();}));
@@ -527,6 +552,9 @@ const googleProvider = new GoogleAuthProvider();
     root.querySelectorAll('[data-goal-check]').forEach(el=>el.addEventListener('change',()=>{const goal=goals.find(g=>g.id===el.dataset.goalCheck);if(goal)goal.done=el.checked;touchWeek();renderStats();renderGoals();}));
     root.querySelectorAll('[data-goal-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().goals[type.id]=goals.filter(g=>g.id!==el.dataset.goalDelete);touchWeek();renderStats();renderGoals();}));
     root.querySelectorAll('[data-save-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const goal=goals.find(g=>g.id===el.dataset.saveGoalComment);const input=root.querySelector(`[data-goal-comment="${el.dataset.saveGoalComment}"]`);if(goal&&input){goal.comment=input.value.trim();touchWeek();renderStats();renderGoals();toast('주간 목표 피드백을 저장했어요.');}}));
+    root.querySelectorAll('[data-subtask-check]').forEach(el=>el.addEventListener('change',()=>{const [gid,sid]=el.dataset.subtaskCheck.split(':');const goal=goals.find(g=>g.id===gid);const sub=goal?.subtasks?.find(x=>x.id===sid);if(sub)sub.done=el.checked;touchWeek();renderGoals();}));
+    root.querySelectorAll('[data-subtask-delete]').forEach(el=>el.addEventListener('click',()=>{const [gid,sid]=el.dataset.subtaskDelete.split(':');const goal=goals.find(g=>g.id===gid);if(goal)goal.subtasks=(goal.subtasks||[]).filter(x=>x.id!==sid);touchWeek();renderGoals();}));
+    root.querySelectorAll('[data-subtask-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const gid=form.dataset.subtaskForm;const goal=goals.find(g=>g.id===gid);const input=root.querySelector(`[data-subtask-input="${gid}"]`);if(!goal||!input.value.trim())return;if(!Array.isArray(goal.subtasks))goal.subtasks=[];goal.subtasks.push({id:uid(),text:input.value.trim(),done:false});touchWeek();renderGoals();}));
     const addGoal=()=>{const input=$('goalInput');const value=input.value.trim();if(!value){toast('목표를 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.goals[type.id]))week.goals[type.id]=[];week.goals[type.id].push({id:uid(),text:value,done:false,comment:''});touchWeek();renderStats();renderGoals();$('goalInput').focus();};
     $('addGoalButton').addEventListener('click',addGoal);$('goalInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addGoal();}});$('goalForm').addEventListener('submit',e=>e.preventDefault());
   }
@@ -535,17 +563,18 @@ const googleProvider = new GoogleAuthProvider();
     const idx=selectedTaskSlot;
     const type=idx===null?null:state.types.find(t=>t.id===currentWeek().slots[idx]);
     if(idx===null||!type){root.innerHTML='<div class="task-empty">시간표에서 배정된 블럭을 선택하면 해당 블럭의 체크리스트를 관리할 수 있어요.</div>';return;}
-    const tasks=(currentWeek().tasks||{})[idx]||[];
+    const {group,anchor,tasks}=groupedTasks(idx);
     const day=DAYS[idx%7];
     const block=Math.floor(idx/7)+1;
-    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(block).padStart(2,'0')} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label><button class="task-icon-btn" type="button" data-edit-task="${t.id}" aria-label="할 일 내용 수정" title="내용 수정">✎</button><button class="task-icon-btn" type="button" data-toggle-comment="${t.id}" aria-label="피드백 ${t.comment?'수정':'작성'}" title="피드백 ${t.comment?'수정':'작성'}" aria-expanded="false">▤</button><button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-feedback task-text-editor" data-task-edit-panel="${t.id}" hidden><input class="name-input" data-task-text="${t.id}" maxlength="120" value="${escapeHtml(t.text)}" aria-label="할 일 내용 수정"><button class="btn" type="button" data-save-task="${t.id}">저장</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}</div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">피드백 저장</button></div></div>`).join(''):'<div class="task-empty">이 블럭에 등록한 할 일이 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="이 블럭에서 할 일 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`;
+    const groupLabel=group.length>1?` · BLOCK ${String(Math.floor(group[group.length-1]/7)+1).padStart(2,'0')}까지 연결`:'';
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(block).padStart(2,'0')}${groupLabel} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label><button class="task-icon-btn" type="button" data-edit-task="${t.id}" aria-label="할 일 내용 수정" title="내용 수정">✎</button><button class="task-icon-btn" type="button" data-toggle-comment="${t.id}" aria-label="피드백 ${t.comment?'수정':'작성'}" title="피드백 ${t.comment?'수정':'작성'}" aria-expanded="false">⌁</button><button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-feedback task-text-editor" data-task-edit-panel="${t.id}" hidden><input class="name-input" data-task-text="${t.id}" maxlength="120" value="${escapeHtml(t.text)}" aria-label="할 일 내용 수정"><button class="btn" type="button" data-save-task="${t.id}">저장</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}</div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">피드백 저장</button></div></div>`).join(''):'<div class="task-empty">이 블럭에 등록한 할 일이 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="이 블럭에서 할 일 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`;
     root.querySelectorAll('[data-edit-task]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editTask;const panel=root.querySelector(`[data-task-edit-panel="${id}"]`);panel.hidden=false;panel.querySelector('input').focus();}));
     root.querySelectorAll('[data-save-task]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveTask);const input=root.querySelector(`[data-task-text="${el.dataset.saveTask}"]`);if(task&&input&&input.value.trim()){task.text=input.value.trim();touchWeek();renderTasks();renderGrid();toast('할 일 내용을 수정했어요.');}}));
     root.querySelectorAll('[data-toggle-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-feedback-panel="${el.dataset.toggleComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();}));
     root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const task=tasks.find(t=>t.id===el.dataset.taskCheck);if(task)task.done=el.checked;touchWeek();renderTasks();renderGrid();}));
-    root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().tasks[idx]=tasks.filter(t=>t.id!==el.dataset.taskDelete);touchWeek();renderAll();}));
+    root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().tasks[anchor]=tasks.filter(t=>t.id!==el.dataset.taskDelete);touchWeek();renderAll();}));
     root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveComment);const input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(task&&input){task.comment=input.value.trim();touchWeek();renderTasks();toast('피드백을 저장했어요.');}}));
-    const addTask=()=>{const input=$('taskInput');const taskText=input.value.trim();if(!taskText){toast('할 일을 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.tasks[idx]))week.tasks[idx]=[];week.tasks[idx].push({id:uid(),text:taskText,done:false,comment:''});touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();};
+    const addTask=()=>{const input=$('taskInput');const taskText=input.value.trim();if(!taskText){toast('할 일을 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.tasks[anchor]))week.tasks[anchor]=[];week.tasks[anchor].push({id:uid(),text:taskText,done:false,comment:''});touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();};
     $('addTaskButton').addEventListener('click',addTask);$('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});$('taskForm').addEventListener('submit',e=>e.preventDefault());
   }
   function renderHistory() {
