@@ -3,10 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f5f4f0">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23344d43'/%3E%3Crect x='12' y='12' width='17' height='17' rx='3' fill='white'/%3E%3Crect x='35' y='12' width='17' height='17' rx='3' fill='white'/%3E%3Crect x='12' y='35' width='17' height='17' rx='3' fill='white'/%3E%3Crect x='35' y='35' width='17' height='17' rx='3' fill='white'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%23344d43'/%3E%3Crect x='34' y='34' width='48' height='48' rx='8' fill='white'/%3E%3Crect x='98' y='34' width='48' height='48' rx='8' fill='white'/%3E%3Crect x='34' y='98' width='48' height='48' rx='8' fill='white'/%3E%3Crect x='98' y='98' width='48' height='48' rx='8' fill='white'/%3E%3C/svg%3E">
-<title>블럭 주간 시간표</title>
+<meta name="theme-color" content="#344d43">
+<meta name="description" content="Timeblock — 한 주의 시간을 블럭으로 배정하고, 주간 목표와 실행 피드백을 기록하는 개인 플래너.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Timeblock | 주간 시간 블럭 플래너">
+<meta property="og:description" content="한 주의 시간을 블럭으로 계획하고, 목표와 실행 피드백을 기록해 보세요.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23344d43'/%3E%3Crect x='13' y='13' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='35' y='13' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='13' y='35' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3Crect x='35' y='35' width='16' height='16' rx='3' fill='%23ffffff'/%3E%3C/svg%3E">
+<title>Timeblock | 주간 시간 블럭 플래너</title>
 <style>
 :root {
   color-scheme: light dark;
@@ -42,9 +46,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, .slot:focus-vis
 .brand { display:flex; align-items:center; gap:12px; }
 .brand-mark { width:40px; height:40px; display:grid; grid-template-columns:repeat(2,1fr); gap:4px; padding:6px; border:1px solid #ffffff66; border-radius:12px; }
 .brand-mark i { display:block; border-radius:3px; background:#ffffff; opacity:.9; }
+.mini-mark { display:inline-grid; grid-template-columns:repeat(2,5px); grid-template-rows:repeat(2,5px); gap:2px; margin-right:2px; vertical-align:middle; }
+.mini-mark i { display:block; width:5px; height:5px; border-radius:1px; background:currentColor; }
 .brand h1 { font-size:calc(22px * var(--site-heading-scale)); margin:0; letter-spacing:-.04em; font-family:var(--site-font-heading); }
 .brand p { margin:3px 0 0; font-size:12px; color:#d6e0d8; }
-.top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
+.auth-status { font-size:11px; color:#d6e0d8; min-width:100%; text-align:right; }
+@media (max-width:600px) { .auth-status { text-align:left; } }
 .btn { border:1px solid var(--line); border-radius:11px; padding:10px 13px; background:var(--surface); color:var(--text); font-size:13px; font-weight:650; transition:transform .15s, background .15s; }
 .btn:hover { transform:translateY(-1px); }
 .btn.primary { background:var(--site-secondary); color:var(--site-on-secondary); border-color:transparent; }
@@ -87,7 +95,9 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .task-row input[type=checkbox] { width:16px; height:16px; accent-color:var(--site-primary); flex:0 0 auto; }
 .task-row label { flex:1; min-width:0; font-size:12px; overflow-wrap:anywhere; }
 .task-row.done label { color:var(--muted); text-decoration:line-through; }
-.task-count { position:absolute; right:4px; bottom:4px; padding:2px 5px; border-radius:6px; background:#ffffffb8; color:#344238; font-size:9px; line-height:1.1; font-weight:750; letter-spacing:0; }
+.feedback-count { position:absolute; right:5px; top:5px; color:#a33d54; background:#fff0f2; border:1px solid #f2c6cf; border-radius:5px; padding:2px 4px; font-size:9px; font-weight:700; }
+  .task-section-title { font-size:12px; font-weight:800; color:var(--muted); margin:10px 0 6px; }
+  .task-count { position:absolute; right:4px; bottom:4px; padding:2px 5px; border-radius:6px; background:#ffffffb8; color:#344238; font-size:9px; line-height:1.1; font-weight:750; letter-spacing:0; }
 .task-entry { display:flex; flex-direction:column; gap:4px; }
 .task-feedback { padding:0 10px 8px; display:flex; align-items:flex-start; gap:7px; }
 .task-feedback[hidden] { display:none; }
@@ -177,26 +187,9 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
 .footer-note { margin-top:16px; color:var(--muted); font-size:11px; line-height:1.6; }
 @media (max-width:900px) { .layout { grid-template-columns:1fr; } .side { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; } .side .history-panel { grid-column:1/-1; } }
-@media (max-width:600px) { .topbar { align-items:flex-start; flex-direction:column; padding:17px 15px; } .top-actions { justify-content:flex-start; } .top-actions .btn { padding:8px 10px; } main { padding:19px 10px 30px; } .intro { align-items:flex-start; flex-direction:column; } h2 { font-size:25px; } .week-switch { align-self:stretch; justify-content:space-between; gap:3px; } .week-label { flex:1; font-size:11px; letter-spacing:-.03em; } .week-switch button { flex:0 0 30px; width:30px; } .week-switch #thisWeek { flex:0 0 auto; width:auto; padding:8px 7px !important; font-size:11px; } .summary { grid-template-columns:1fr; gap:8px; } .stat:first-child { grid-column:auto; } .stat { padding:13px; min-height:87px; } .stat-number strong { font-size:26px; } .layout { display:flex; flex-direction:column; min-width:0; width:100%; } .calendar-panel { order:2; width:100%; min-width:0; } .side { order:1; display:flex; flex-direction:column; width:100%; min-width:0; } .side > .panel { width:100%; max-width:100%; min-width:0; align-self:stretch; } .side .type-panel { order:1; overflow:hidden; } .side .history-panel { order:2; grid-column:auto; } .type-list { box-sizing:border-box; flex-direction:row; width:100%; max-width:100%; min-width:0; overflow-x:auto; overscroll-behavior-x:contain; padding:10px 12px 13px; gap:8px; -webkit-overflow-scrolling:touch; } .type-item { flex:0 0 auto; width:max-content; max-width:170px; padding:9px 10px; } .type-name { flex:0 1 auto; white-space:nowrap; max-width:95px; overflow:hidden; text-overflow:ellipsis; } .type-count { flex:0 0 auto; } .type-more { margin-bottom:10px; } .panel-head { padding:14px; } .grid-scroll { padding:8px; overflow-x:hidden; } .week-grid { grid-template-columns:25px repeat(7,minmax(0,1fr)); min-width:0; gap:5px; } .grid-corner { min-height:40px; } .day-head { min-width:0; min-height:40px; padding:7px 1px; } .day-head .day { font-size:11px; } .day-head .date { font-size:9px; } .row-label { min-height:58px; padding-top:8px; font-size:8px; letter-spacing:-.04em; } .slot { min-width:0; min-height:58px; padding:3px 1px; border-radius:7px; } .slot .slot-name { font-size:9px; line-height:1.15; overflow-wrap:anywhere; word-break:break-word; } .task-count { right:1px; bottom:1px; padding:1px 3px; font-size:8px; } .slot .remove { top:0; right:0; width:15px; height:15px; font-size:11px; } .grid-foot { padding:0 12px 13px; flex-direction:column; gap:5px; } }
-/* Mobile-safe editor and dialog sizing */
-.type-delete { display:none; }
-.type-create-popover { max-height:calc(100vh - 28px); overflow-y:auto; overscroll-behavior:contain; }
-.modal { max-height:calc(100vh - 32px); overflow-y:auto; }
-.color-choice { border:2px solid #00000022; box-shadow:inset 0 0 0 1px #ffffff70; }
-.color-choice.selected { border-color:var(--text); }
-@media (max-width:600px) {
-  .type-create-popover { position:fixed; z-index:100; top:50%; left:50%; right:auto; transform:translate(-50%,-50%); width:min(360px,calc(100vw - 28px)); max-height:calc(100dvh - 32px); padding:18px; }
-  .side .type-panel { overflow:visible; }
-  .modal-backdrop { padding:12px; align-items:center; overflow-y:auto; }
-  .modal, .task-modal { max-height:calc(100dvh - 24px); }
-  .palette { grid-template-columns:repeat(6,minmax(0,1fr)); gap:9px; }
-  .color-choice { min-height:32px; }
-}
-
-.task-text-editor { display:flex; align-items:center; gap:7px; padding:0 10px 8px 35px; }
-.task-text-editor[hidden] { display:none; }
-.task-text-editor input { flex:1; min-width:0; border:1px solid var(--line); border-radius:8px; padding:8px 9px; background:var(--surface); color:var(--text); font:inherit; font-size:12px; }
-.task-text-editor .btn { padding:7px 9px; font-size:11px; white-space:nowrap; }
+@media (max-width:600px) { .topbar { align-items:flex-start; flex-direction:column; padding:17px 15px; } .top-actions { justify-content:flex-start; } .top-actions .btn { padding:8px 10px; } main { padding:19px 10px 30px; } .intro { align-items:flex-start; flex-direction:column; } h2 { font-size:25px; } .week-switch { align-self:stretch; justify-content:space-between; gap:3px; } .week-label { flex:1; font-size:11px; letter-spacing:-.03em; } .week-switch button { flex:0 0 30px; width:30px; } .week-switch #thisWeek { flex:0 0 auto; width:auto; padding:8px 7px !important; font-size:11px; } .summary { grid-template-columns:1fr; gap:8px; } .stat:first-child { grid-column:auto; } .stat { padding:13px; min-height:87px; } .stat-number strong { font-size:26px; } .layout { display:flex; flex-direction:column; min-width:0; width:100%; } .calendar-panel { order:2; width:100%; min-width:0; } .side { order:1; display:flex; flex-direction:column; width:100%; min-width:0; } .side > .panel { width:100%; max-width:100%; min-width:0; align-self:stretch; } .side .type-panel { order:1; overflow:hidden; } .side .history-panel { order:2; grid-column:auto; } .type-list { box-sizing:border-box; flex-direction:row; width:100%; max-width:100%; min-width:0; overflow-x:auto; overscroll-behavior-x:contain; padding:10px 12px 13px; gap:8px; -webkit-overflow-scrolling:touch; } .type-item { flex:0 0 auto; width:max-content; max-width:170px; padding:9px 10px; } .type-name { flex:0 1 auto; white-space:nowrap; max-width:95px; overflow:hidden; text-overflow:ellipsis; } .type-count { flex:0 0 auto; } .type-more { margin-bottom:10px; } .panel-head { padding:14px; } .grid-scroll { padding:8px; overflow-x:hidden; } .week-grid { grid-template-columns:25px repeat(7,minmax(0,1fr)); min-width:0; gap:5px; } .grid-corner { min-height:40px; } .day-head { min-width:0; min-height:40px; padding:7px 1px; } .day-head .day { font-size:11px; } .day-head .date { font-size:9px; } .row-label { min-height:58px; padding-top:8px; font-size:8px; letter-spacing:-.04em; } .slot { min-width:0; min-height:58px; padding:3px 1px; border-radius:7px; } .slot .slot-name { font-size:9px; line-height:1.15; overflow-wrap:anywhere; word-break:break-word; } .feedback-count { position:absolute; right:5px; top:5px; color:#a33d54; background:#fff0f2; border:1px solid #f2c6cf; border-radius:5px; padding:2px 4px; font-size:9px; font-weight:700; }
+  .task-section-title { font-size:12px; font-weight:800; color:var(--muted); margin:10px 0 6px; }
+  .feedback-count { right:1px; top:1px; padding:1px 2px; font-size:7px; } .task-count { right:1px; bottom:1px; padding:1px 3px; font-size:8px; } .slot .remove { top:0; right:0; width:15px; height:15px; font-size:11px; } .grid-foot { padding:0 12px 13px; flex-direction:column; gap:5px; } }
 </style>
 </head>
 <body>
@@ -204,26 +197,29 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-      <div><h1>블럭 플래너</h1><p>한 주의 시간을, 내가 원하는 색으로</p></div>
+      <div><h1>Timeblock</h1><p>한 주의 시간을, 내가 원하는 색으로</p></div>
     </div>
     <div class="top-actions">
+      <button class="btn primary" id="googleLogin" type="button">Google 로그인</button>
+      <button class="btn ghost" id="googleLogout" type="button" hidden>로그아웃</button>
       <button class="btn ghost" id="copyPrev">지난주 계획 복사</button>
       <button class="btn ghost" id="clearWeek">이번 주 비우기</button>
+      <span class="auth-status" id="authStatus" role="status">로그인하면 기기 간 동기화가 시작돼요.</span>
     </div>
   </header>
   <main>
     <section class="intro">
-      <div><div class="eyebrow">WEEKLY TIME MAP</div><h2>이번 주를 설계해요.</h2><p class="intro-copy">블럭을 만들고, 색을 입히고, 비어 있는 시간을 채워 보세요.</p></div>
+      <div><div class="eyebrow">TIMEBLOCK · WEEKLY PLAN</div><h2>이번 주를 설계해요.</h2><p class="intro-copy">블럭을 만들고, 색을 입히고, 비어 있는 시간을 채워 보세요.</p></div>
       <div class="week-switch"><button id="prevWeek" aria-label="이전 주">‹</button><div class="week-label" id="weekLabel">날짜 불러오는 중</div><button id="nextWeek" aria-label="다음 주">›</button><button id="thisWeek" class="btn" style="padding:8px 10px">이번 주</button></div>
     </section>
     <section class="summary" aria-label="주간 블럭 배정 현황">
-      <div class="stat"><div class="stat-label">▦ 주간 배정 현황 · 가용 블럭</div><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭 배정 · 42블럭 남음</span></div><div class="progress"><span id="progressBar"></span></div><div class="allocation-list" id="allocationList"></div></div>
+      <div class="stat"><div class="stat-label"><span class="mini-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>주간 배정 현황 · 가용 블럭</div><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭 배정 · 42블럭 남음</span></div><div class="progress"><span id="progressBar"></span></div><div class="allocation-list" id="allocationList"></div></div>
     </section>
     <section class="layout">
       <div class="panel calendar-panel">
         <div class="panel-head"><div><h3>주간 블럭 시간표</h3><p>빈 칸을 누르면 선택한 블럭이 들어가요 · 끌어서 옮길 수도 있어요</p></div></div>
         <div class="grid-scroll"><div class="week-grid" id="weekGrid" aria-label="7일 42블럭 시간표"></div></div>
-        <div class="grid-foot"><span>※ 현재는 하루를 6개의 블럭으로 나눈 계획표예요.</span><span id="syncLabel">● 이 브라우저에 자동 저장</span></div>
+        <div class="grid-foot"><span>※ 현재는 하루를 6개의 블럭으로 나눈 계획표예요.</span><span id="syncLabel">● 로그인 전 · 이 브라우저에 저장</span></div>
       </div>
       <aside class="side">
         <section class="panel type-panel">
@@ -233,7 +229,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
             <input class="name-input" id="typeName" maxlength="24" placeholder="예: 공부, 운동, 휴식" autocomplete="off">
             <div class="field-label" style="margin-top:14px">색상 선택</div>
             <div class="palette" id="palette"></div>
-            <div class="add-row"><button class="btn primary" id="addType">+ 블럭 종류 추가</button><button class="btn" id="cancelEdit" style="display:none">취소</button><button class="btn type-delete" id="deleteType" type="button">삭제</button></div>
+            <div class="add-row"><button class="btn primary" id="addType">+ 블럭 종류 추가</button><button class="btn" id="cancelEdit" style="display:none">취소</button></div>
           </div>
           <div class="type-list" id="typeList"></div>
           <button class="type-more" id="toggleMoreTypes" type="button" hidden>나머지 블럭 더보기 ↓</button>
@@ -244,6 +240,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
         </section>
       </aside>
     </section>
+    <p class="footer-note">Google 로그인 시 PC와 아이폰에서 같은 시간표를 사용할 수 있어요. 변경 내용은 자동 저장됩니다.</p>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -251,14 +248,31 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   <div class="modal"><h3 id="modalTitle">이번 주 계획을 비울까요?</h3><p id="modalText">시간표의 배정이 모두 지워집니다. 저장해 둔 과거 기록은 유지됩니다.</p><div class="modal-actions"><button class="btn" id="modalCancel">취소</button><button class="btn primary" id="modalConfirm">비우기</button></div></div>
 </div>
 <div class="modal-backdrop" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
-  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="taskModalTitle">블럭 체크리스트</h3><button class="small-action" id="taskModalClose" type="button" aria-label="체크리스트 닫기">닫기 ×</button></div><p>이 블럭에서 할 일을 추가하고 완료 여부를 체크할 수 있어요.</p><div class="task-content" id="taskContent"><div class="task-empty">시간표에서 배정된 블럭을 선택해 주세요.</div></div></div>
+  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="taskModalTitle">블럭 체크리스트</h3><button class="small-action" id="taskModalClose" type="button" aria-label="체크리스트 닫기">닫기 ×</button></div><p>이 블럭에서 할 일을 추가하고 완료 여부와 피드백을 기록할 수 있어요.</p><div class="task-content" id="taskContent"><div class="task-empty">시간표에서 배정된 블럭을 선택해 주세요.</div></div></div>
 </div>
 <div class="modal-backdrop" id="goalModal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
-  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="goalModalTitle">주간 목표</h3><button class="small-action" id="goalModalClose" type="button" aria-label="주간 목표 닫기">닫기 ×</button></div><p>이번 주 이 블럭 종류에서 달성할 목표를 정리해요. 개별 시간 블럭의 투두와는 별도로 관리됩니다.</p><div class="task-content" id="goalContent"><div class="task-empty">블럭을 선택해 주세요.</div></div></div>
+  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="goalModalTitle">주간 목표</h3><button class="small-action" id="goalModalClose" type="button" aria-label="주간 목표 닫기">닫기 ×</button></div><p>이번 주 이 블럭 종류에서 달성할 목표를 적고, 완료 여부와 피드백을 기록해요.</p><div class="task-content" id="goalContent"><div class="task-empty">주간 배정 현황에서 블럭을 선택해 주세요.</div></div></div>
 </div>
-<script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBbRoZRN5uUdpDN9qmzgvIgK-wXgkpNF8k",
+  authDomain: "blocktime-a9830.firebaseapp.com",
+  projectId: "blocktime-a9830",
+  storageBucket: "blocktime-a9830.firebasestorage.app",
+  messagingSenderId: "880753476928",
+  appId: "1:880753476928:web:a12dc699b7133a3a0326a5"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
+
 (() => {
-  const COLORS = ['#F4A7A7','#F6C28B','#F4DE7A','#C8D96B','#8FCB91','#70C9B0','#76D0D7','#8BBDEB','#A1A4F0','#C0A0E8','#E0A0D1','#D99B8D','#C6B8A4','#A9B4BF','#E88D9B','#EBA66B','#D8C44E','#9FBF50','#58AD75','#42B7A5','#45B7D0','#5C98D8','#7B82D8','#A77BD1','#CE80B5','#B66D83','#C27C4B','#A5A85A','#5E9B86','#4F8F9F','#6D7EAD','#8C6FA5','#D5A45F','#8C9A9E','#B9CFD8','#E6C6B6'];
+  const COLORS = ['#B8D4F8','#F4C7B8','#C7E4CB','#E9D3F4','#F4E1A3','#BDE4E3','#D6D9DF','#F2C8DA','#D8D0B8','#BFC7F2','#F0D0A8','#C8D8C5','#A9D2E8','#F6B8A8','#A8D5B5','#D8B9F0','#E8CF78','#8ED4CF','#C1C7D1','#E8AFC8','#C6B89C','#9DAAE8','#E7B878','#AFC5A5','#7FB0D6','#E58E83','#80B88D','#B992D8','#D8B94E','#68BDB5','#A2AAB8','#D78BAE','#B4A17D','#7887D0','#D89A52','#7D9B72'];
   const DAYS = ['월','화','수','목','금','토','일'];
   const STORAGE_KEY = 'block-planner-prototype-v1';
   let chosenColor = COLORS[0];
@@ -270,6 +284,12 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   let dragData = null;
   let pendingConfirm = null;
   let state = { types: [], weeks: {}, currentWeek: weekKey(new Date()) };
+  let currentUser = null;
+  let cloudReady = false;
+  let unsubscribeCloud = null;
+  let saveTimer = null;
+  let queuedRemoteState = null;
+  let remoteApplyScheduled = false;
   const $ = id => document.getElementById(id);
   const clone = x => JSON.parse(JSON.stringify(x));
   const uid = () => 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -285,7 +305,145 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate()+n); return d; }
   function currentWeek() { return state.weeks[state.currentWeek] || { slots: Array(42).fill(null), tasks: {}, goals: {}, updatedAt: null }; }
   function ensureWeek(key) { if (!state.weeks[key]) state.weeks[key] = { slots: Array(42).fill(null), tasks: {}, goals: {}, updatedAt: null }; if (state.weeks[key].slots.length !== 42) state.weeks[key].slots = Array.from({length:42}, (_,i)=>state.weeks[key].slots[i] || null); if(!state.weeks[key].tasks) state.weeks[key].tasks={}; if(!state.weeks[key].goals) state.weeks[key].goals={}; return state.weeks[key]; }
-  function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); $('syncLabel').textContent = '● 이 브라우저에 자동 저장'; } catch (e) { $('syncLabel').textContent = '저장 공간을 확인해 주세요'; } }
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { $('syncLabel').textContent = '브라우저 저장 공간을 확인해 주세요'; }
+    if (!currentUser || !cloudReady) {
+      $('syncLabel').textContent = '● 로그인 전 · 이 브라우저에 저장';
+      return;
+    }
+    $('syncLabel').textContent = '● 동기화 대기 중…';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try {
+        const ref = doc(db, 'users', currentUser.uid, 'planner', 'state');
+        await setDoc(ref, { state, updatedAt: serverTimestamp() });
+        $('syncLabel').textContent = '● Firebase 동기화 완료';
+        $('authStatus').textContent = `로그인됨 · ${currentUser.email || currentUser.displayName || 'Google 계정'}`;
+      } catch (error) {
+        console.error('Firestore 저장 실패:', error);
+        $('syncLabel').textContent = '동기화 실패 · 보안 규칙을 확인해 주세요';
+        $('authStatus').textContent = '로그인은 됐지만 저장에 실패했어요. Firestore 규칙을 확인해 주세요.';
+      }
+    }, 350);
+  }
+
+  function applyRemoteState(remote) {
+    if (!remote || !Array.isArray(remote.types) || !remote.weeks) return;
+    queuedRemoteState = null;
+    state = remote;
+    if (!state.currentWeek) state.currentWeek = weekKey(new Date());
+    ensureWeek(state.currentWeek);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    renderPalette();
+    renderAll();
+    $('syncLabel').textContent = '● 다른 기기와 동기화됨';
+  }
+
+  document.addEventListener('focusout', () => {
+    if (remoteApplyScheduled) return;
+    remoteApplyScheduled = true;
+    setTimeout(() => {
+      remoteApplyScheduled = false;
+      const active = document.activeElement;
+      const stillEditing = active && (active.matches('input, textarea, select, [contenteditable="true"]') || active.closest('[contenteditable="true"]'));
+      if (!stillEditing && queuedRemoteState) applyRemoteState(queuedRemoteState);
+    }, 0);
+  });
+
+  function setFreshState() {
+    state = { types: [], weeks: {}, currentWeek: weekKey(new Date()) };
+    selectedTypeId = null;
+    selectedTaskSlot = null;
+    ensureWeek(state.currentWeek);
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    renderPalette();
+    renderAll();
+  }
+
+  async function handleSignedIn(user) {
+    currentUser = user;
+    cloudReady = false;
+    $('googleLogin').hidden = true;
+    $('googleLogout').hidden = false;
+    $('authStatus').textContent = `로그인 확인 중 · ${user.email || user.displayName || 'Google 계정'}`;
+    $('syncLabel').textContent = '● 클라우드 기록 불러오는 중…';
+    if (unsubscribeCloud) { unsubscribeCloud(); unsubscribeCloud = null; }
+    try {
+      const ref = doc(db, 'users', user.uid, 'planner', 'state');
+      const snap = await getDoc(ref);
+      if (snap.exists() && snap.data().state && Array.isArray(snap.data().state.types) && snap.data().state.weeks) {
+        state = snap.data().state;
+        if (!state.currentWeek) state.currentWeek = weekKey(new Date());
+        ensureWeek(state.currentWeek);
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+        renderPalette(); renderAll();
+      } else {
+        // 첫 로그인은 기존 테스트용 브라우저 기록을 가져오지 않고 빈 시간표로 시작합니다.
+        setFreshState();
+        await setDoc(ref, { state, updatedAt: serverTimestamp() });
+      }
+      cloudReady = true;
+      $('authStatus').textContent = `로그인됨 · ${user.email || user.displayName || 'Google 계정'}`;
+      $('syncLabel').textContent = '● Firebase 동기화 완료';
+      unsubscribeCloud = onSnapshot(ref, snap => {
+        if (!snap.exists() || snap.metadata.hasPendingWrites || !cloudReady) return;
+        const remote = snap.data().state;
+        if (!remote || !Array.isArray(remote.types) || !remote.weeks) return;
+        // Firestore may echo this tab's own write. Do not rebuild the UI when nothing changed.
+        if (JSON.stringify(remote) === JSON.stringify(state)) return;
+        // Keep the active editor alive while the user is typing. Apply a genuinely newer
+        // remote version only after focus leaves all editable fields.
+        const active = document.activeElement;
+        if (active && (active.matches('input, textarea, select, [contenteditable="true"]') || active.closest('[contenteditable="true"]'))) {
+          queuedRemoteState = remote;
+          $('syncLabel').textContent = '● 입력 중 · 동기화 대기';
+          return;
+        }
+        applyRemoteState(remote);
+      }, error => {
+        console.error('Firestore 실시간 동기화 실패:', error);
+        $('syncLabel').textContent = '실시간 동기화 실패';
+      });
+    } catch (error) {
+      console.error('클라우드 기록 불러오기 실패:', error);
+      cloudReady = false;
+      $('syncLabel').textContent = '동기화 설정 확인 필요';
+      $('authStatus').textContent = 'Firebase 연결에 실패했어요. Firestore 보안 규칙과 승인 도메인을 확인해 주세요.';
+      toast('클라우드 연결에 실패했어요. 설정을 확인해 주세요.');
+    }
+  }
+
+  $('googleLogin').addEventListener('click', async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error('Google 로그인 오류:', error);
+      if (error.code === 'auth/popup-blocked') {
+        try { await signInWithRedirect(auth, googleProvider); }
+        catch (redirectError) { console.error(redirectError); toast('로그인 창을 열 수 없어요. 브라우저 설정을 확인해 주세요.'); }
+      } else {
+        $('authStatus').textContent = '로그인 실패 · Firebase 인증 설정을 확인해 주세요.';
+        toast('Google 로그인에 실패했어요.');
+      }
+    }
+  });
+  $('googleLogout').addEventListener('click', async () => {
+    try { await signOut(auth); toast('로그아웃했어요.'); }
+    catch (error) { console.error(error); toast('로그아웃에 실패했어요.'); }
+  });
+  getRedirectResult(auth).catch(error => console.error('로그인 리디렉션 결과:', error));
+  onAuthStateChanged(auth, user => {
+    if (user) handleSignedIn(user);
+    else {
+      if (unsubscribeCloud) { unsubscribeCloud(); unsubscribeCloud = null; }
+      currentUser = null;
+      cloudReady = false;
+      $('googleLogin').hidden = false;
+      $('googleLogout').hidden = true;
+      $('authStatus').textContent = '로그인하면 PC와 아이폰에서 같은 시간표를 사용할 수 있어요.';
+      $('syncLabel').textContent = '● 로그인 전 · 이 브라우저에 저장';
+    }
+  });
   function toast(message) { const el=$('toast'); el.textContent=message; el.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>el.classList.remove('show'),2200); }
   function fmtDate(d, withYear=false) { return `${withYear ? d.getFullYear()+'. ' : ''}${d.getMonth()+1}.${d.getDate()}`; }
   function weekRange(key) { const start = new Date(key+'T12:00:00'); const end = addDays(start,6); return {start,end}; }
@@ -314,60 +472,70 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
     list.querySelectorAll('[data-type]').forEach(el=>el.style.outline=el.dataset.type===selectedTypeId?'2px solid var(--site-primary)':'none');
   }
   $('toggleMoreTypes').addEventListener('click',()=>{showAllTypes=!showAllTypes;renderTypes();});
+  function groupIndices(index) {
+    const slots=currentWeek().slots, typeId=slots[index];
+    if(!typeId) return [index];
+    const day=index%7; let first=Math.floor(index/7), last=first;
+    while(first>0 && slots[(first-1)*7+day]===typeId) first--;
+    while(last<5 && slots[(last+1)*7+day]===typeId) last++;
+    return Array.from({length:last-first+1},(_,i)=>(first+i)*7+day);
+  }
+  function groupTasks(index) {
+    const seen=new Set();
+    return groupIndices(index).flatMap(i=>(currentWeek().tasks||{})[i]||[]).filter(t=>{if(seen.has(t.id))return false;seen.add(t.id);return true;});
+  }
+  function saveGroupTasks(index,tasks) { groupIndices(index).forEach(i=>{currentWeek().tasks[i]=JSON.parse(JSON.stringify(tasks));}); }
   function renderGrid() {
-    const grid=$('weekGrid'); const start=new Date(state.currentWeek+'T12:00:00'); const slots=currentWeek().slots;
-    const todayKey=dateKey(new Date());
-    let html='<div class="grid-corner"></div>';
-    for(let d=0;d<7;d++) { const date=addDays(start,d); html+=`<div class="day-head ${dateKey(date)===todayKey?'today':''}"><span class="day">${DAYS[d]}</span><span class="date">${date.getMonth()+1}/${date.getDate()}</span></div>`; }
-    for(let r=0;r<6;r++) {
-      html+=`<div class="row-label">BLOCK ${String(r+1).padStart(2,'0')}</div>`;
-      for(let d=0;d<7;d++) {
-        const idx=r*7+d; const type=state.types.find(t=>t.id===slots[idx]);
-        if(type) { const tasks=(currentWeek().tasks||{})[idx]||[]; const done=tasks.filter(t=>t.done).length; html+=`<div class="slot filled" tabindex="0" role="button" draggable="true" data-slot="${idx}" style="background:${type.color};${selectedTaskSlot===idx?'outline:3px solid var(--site-primary);outline-offset:1px;':''}" aria-label="${DAYS[d]}요일 블럭 ${r+1}: ${escapeHtml(type.name)}"><span class="slot-name">${escapeHtml(type.name)}</span>${tasks.length?`<span class="task-count">${done}/${tasks.length} ✓</span>`:''}<button class="remove" data-remove="${idx}" aria-label="블럭 비우기">×</button></div>`; }
-        else html+=`<div class="slot empty" tabindex="0" role="button" data-slot="${idx}" aria-label="${DAYS[d]}요일 블럭 ${r+1}, 비어 있음"><span style="font-size:18px;color:var(--muted);font-weight:300">+</span></div>`;
-      }
+    const grid=$('weekGrid'), start=new Date(state.currentWeek+'T12:00:00'), slots=currentWeek().slots, todayKey=dateKey(new Date());
+    let html='<div class="grid-corner" style="grid-column:1;grid-row:1"></div>';
+    for(let d=0;d<7;d++){const date=addDays(start,d);html+=`<div class="day-head ${dateKey(date)===todayKey?'today':''}" style="grid-column:${d+2};grid-row:1"><span class="day">${DAYS[d]}</span><span class="date">${date.getMonth()+1}/${date.getDate()}</span></div>`;}
+    for(let r=0;r<6;r++) html+=`<div class="row-label" style="grid-column:1;grid-row:${r+2}">BLOCK ${String(r+1).padStart(2,'0')}</div>`;
+    for(let d=0;d<7;d++) for(let r=0;r<6;r++) {
+      const idx=r*7+d, type=state.types.find(t=>t.id===slots[idx]);
+      if(type){ if(r>0 && slots[(r-1)*7+d]===slots[idx]) continue;
+        let span=1;while(r+span<6 && slots[(r+span)*7+d]===slots[idx])span++;
+        const indices=Array.from({length:span},(_,i)=>(r+i)*7+d), seen=new Set(), tasks=indices.flatMap(i=>(currentWeek().tasks||{})[i]||[]).filter(t=>{if(seen.has(t.id))return false;seen.add(t.id);return true;});
+        const done=tasks.filter(t=>t.done).length, feedback=tasks.filter(t=>(t.comment||'').trim()).length;
+        html+=`<div class="slot filled" tabindex="0" role="button" draggable="true" data-slot="${idx}" style="grid-column:${d+2};grid-row:${r+2}/span ${span};background:${type.color};${groupIndices(idx).includes(selectedTaskSlot)?'outline:3px solid var(--site-primary);outline-offset:1px;':''}" aria-label="${DAYS[d]}요일 BLOCK ${r+1}부터 ${r+span}까지 ${escapeHtml(type.name)}"><span class="slot-name">${escapeHtml(type.name)}</span>${tasks.length?`<span class="task-count">${done}/${tasks.length} ✓</span>`:''}${feedback?`<span class="feedback-count" title="피드백 ${feedback}개">${feedback} 피드백</span>`:''}<button class="remove" data-remove="${idx}" aria-label="블럭 비우기">×</button></div>`;
+      } else html+=`<div class="slot empty" style="grid-column:${d+2};grid-row:${r+2}" tabindex="0" role="button" data-slot="${idx}" aria-label="${DAYS[d]}요일 블럭 ${r+1}, 비어 있음"><span style="font-size:18px;color:var(--muted);font-weight:300">+</span></div>`;
     }
     grid.innerHTML=html;
-    grid.querySelectorAll('[data-slot]').forEach(el=>{
-      const idx=Number(el.dataset.slot);
-      el.addEventListener('click',e=>{
-        if(e.target.closest('[data-remove]')) return;
-        if(el.classList.contains('filled')) { selectedTaskSlot=idx; selectedTypeId=null; renderTypes(); renderTasks(); renderGrid(); $('taskModal').classList.add('open'); }
-        else if(selectedTypeId) assign(idx,selectedTypeId);
-        else toast('먼저 오른쪽에서 블럭 종류를 선택해 주세요.');
-      });
-      el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
-      el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');e.dataTransfer.dropEffect='move';});
-      el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
-      el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drag-over');let data=dragData;try{data=JSON.parse(e.dataTransfer.getData('text/plain'))||data;}catch{} if(!data)return; if(data.fromSlot!==null && data.fromSlot!==undefined) moveSlot(data.fromSlot,idx); else if(data.typeId) assign(idx,data.typeId);});
-      if(el.classList.contains('filled')) el.addEventListener('dragstart',e=>{dragData={typeId:currentWeek().slots[idx],fromSlot:idx};e.dataTransfer.setData('text/plain',JSON.stringify(dragData));e.dataTransfer.effectAllowed='move';});
-    });
-    grid.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();currentWeek().slots[Number(b.dataset.remove)]=null;touchWeek();renderAll();}));
+    grid.querySelectorAll('[data-slot]').forEach(el=>{const idx=Number(el.dataset.slot);el.addEventListener('click',e=>{if(e.target.closest('[data-remove]'))return;if(el.classList.contains('filled')){selectedTaskSlot=idx;selectedTypeId=null;renderTypes();renderTasks();renderGrid();$('taskModal').classList.add('open');}else if(selectedTypeId)assign(idx,selectedTypeId);else toast('먼저 오른쪽에서 블럭 종류를 선택해 주세요.');});el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');e.dataTransfer.dropEffect='move';});el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drag-over');let data=dragData;try{data=JSON.parse(e.dataTransfer.getData('text/plain'))||data;}catch{}if(!data)return;if(data.fromSlot!==null&&data.fromSlot!==undefined)moveSlot(data.fromSlot,idx);else if(data.typeId)assign(idx,data.typeId);});if(el.classList.contains('filled'))el.addEventListener('dragstart',e=>{dragData={typeId:currentWeek().slots[idx],fromSlot:idx};e.dataTransfer.setData('text/plain',JSON.stringify(dragData));e.dataTransfer.effectAllowed='move';});});
+    grid.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const idx=Number(b.dataset.remove);groupIndices(idx).forEach(i=>{currentWeek().slots[i]=null;delete currentWeek().tasks[i];});touchWeek();renderAll();}));
   }
   function assign(index,typeId) { if(!state.types.some(t=>t.id===typeId)) return; currentWeek().slots[index]=typeId; selectedTypeId=typeId; selectedTaskSlot=index; touchWeek(); renderAll(); }
   function moveSlot(from,to) { if(from===to)return; const slots=currentWeek().slots; const target=slots[to]; slots[to]=slots[from]; slots[from]=target || null; touchWeek(); renderAll(); }
   function touchWeek() { currentWeek().updatedAt=new Date().toISOString(); persist(); }
   function renderStats() { const slots=currentWeek().slots; const count=slots.filter(Boolean).length; $('assignedCount').textContent=count; $('availabilityText').textContent=`/ 42 블럭 배정 · ${42-count}블럭 남음`; $('progressBar').style.width=(count/42*100)+'%'; const totals=state.types.map(type=>({type,count:slots.filter(id=>id===type.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count); $('allocationList').innerHTML=totals.length?totals.map(x=>{const goals=(currentWeek().goals||{})[x.type.id]||[];return `<button type="button" class="allocation-item" data-goal-type="${x.type.id}" aria-label="${escapeHtml(x.type.name)} 주간 목표 열기"><span class="allocation-dot" style="background:${x.type.color}"></span><div class="allocation-copy"><strong>${escapeHtml(x.type.name)}</strong><span>${x.count} / 42 블럭 · 주간 목표 ${goals.filter(g=>g.done).length}/${goals.length}</span></div><span class="allocation-value">${Math.round(x.count/42*100)}%　›</span></button>`;}).join(''):'<div class="task-empty">아직 배정된 블럭이 없어요.</div>'; $('allocationList').querySelectorAll('[data-goal-type]').forEach(b=>b.addEventListener('click',()=>{selectedGoalTypeId=b.dataset.goalType;renderGoals();$('goalModal').classList.add('open');})); }
-  function renderGoals() { const root=$('goalContent'); const type=state.types.find(t=>t.id===selectedGoalTypeId); if(!type){root.innerHTML='<div class="task-empty">주간 배정 현황에서 블럭 종류를 선택해 주세요.</div>';return;} const goals=(currentWeek().goals||{})[type.id]||[]; root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${escapeHtml(type.name)} · 이번 주 목표</strong><span>${goals.filter(g=>g.done).length}/${goals.length}개 완료</span></div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-row ${g.done?'done':''}"><input type="checkbox" data-goal-check="${g.id}" ${g.done?'checked':''} aria-label="주간 목표 완료"><label>${escapeHtml(g.text)}</label><button class="task-delete" type="button" data-goal-delete="${g.id}" aria-label="목표 삭제">×</button></div>`).join(''):'<div class="task-empty">이번 주 목표가 없어요. 아래에서 추가해 주세요.</div>'}</div><form class="task-add" id="goalForm"><input id="goalInput" maxlength="120" placeholder="이번 주에 달성할 목표 추가" aria-label="주간 목표 입력" autocomplete="off"><button class="btn primary" id="addGoalButton" type="button">추가</button></form>`; root.querySelectorAll('[data-goal-check]').forEach(el=>el.addEventListener('change',()=>{const goal=goals.find(g=>g.id===el.dataset.goalCheck);if(goal)goal.done=el.checked;touchWeek();renderStats();renderGoals();})); root.querySelectorAll('[data-goal-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().goals[type.id]=goals.filter(g=>g.id!==el.dataset.goalDelete);touchWeek();renderStats();renderGoals();})); const addGoal=()=>{const input=$('goalInput');const value=input.value.trim();if(!value){toast('목표를 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.goals[type.id]))week.goals[type.id]=[];week.goals[type.id].push({id:uid(),text:value,done:false});touchWeek();renderStats();renderGoals();$('goalInput').focus();}; $('addGoalButton').addEventListener('click',addGoal); $('goalInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addGoal();}}); $('goalForm').addEventListener('submit',e=>e.preventDefault()); }
+  function renderGoals() {
+    const root=$('goalContent');
+    const type=state.types.find(t=>t.id===selectedGoalTypeId);
+    if(!type){root.innerHTML='<div class="task-empty">주간 배정 현황에서 블럭 종류를 선택해 주세요.</div>';return;}
+    const goals=(currentWeek().goals||{})[type.id]||[];
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${escapeHtml(type.name)} · 이번 주 목표</strong><span>${goals.filter(g=>g.done).length}/${goals.length}개 완료</span></div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-entry"><div class="task-row ${g.done?'done':''}"><input type="checkbox" data-goal-check="${g.id}" ${g.done?'checked':''} aria-label="주간 목표 완료"><label>${escapeHtml(g.text)}</label>${g.comment?`<button class="task-comment-toggle" type="button" data-edit-goal-comment="${g.id}">피드백 수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-goal-comment="${g.id}" aria-expanded="false">피드백</button>`}<button class="task-delete" type="button" data-goal-delete="${g.id}" aria-label="목표 삭제">×</button></div><div class="task-comment-display" data-goal-comment-display="${g.id}" ${g.comment?'':'hidden'}>${escapeHtml(g.comment||'')}<button type="button" data-edit-goal-comment="${g.id}">수정</button></div><div class="task-feedback" data-goal-feedback-panel="${g.id}" hidden><textarea data-goal-comment="${g.id}" maxlength="1000" placeholder="목표 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(g.comment||'')}</textarea><button class="btn" type="button" data-save-goal-comment="${g.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이번 주 목표가 없어요. 아래에서 추가해 주세요.</div>'}</div><form class="task-add" id="goalForm"><input id="goalInput" maxlength="120" placeholder="이번 주에 달성할 목표 추가" aria-label="주간 목표 입력" autocomplete="off"><button class="btn primary" id="addGoalButton" type="button">추가</button></form>`;
+    root.querySelectorAll('[data-toggle-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-goal-feedback-panel="${el.dataset.toggleGoalComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();}));
+    root.querySelectorAll('[data-edit-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editGoalComment;const panel=root.querySelector(`[data-goal-feedback-panel="${id}"]`);const display=root.querySelector(`[data-goal-comment-display="${id}"]`);if(panel&&display){panel.hidden=false;display.hidden=true;panel.querySelector('textarea').focus();}}));
+    root.querySelectorAll('[data-goal-check]').forEach(el=>el.addEventListener('change',()=>{const goal=goals.find(g=>g.id===el.dataset.goalCheck);if(goal)goal.done=el.checked;touchWeek();renderStats();renderGoals();}));
+    root.querySelectorAll('[data-goal-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().goals[type.id]=goals.filter(g=>g.id!==el.dataset.goalDelete);touchWeek();renderStats();renderGoals();}));
+    root.querySelectorAll('[data-save-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const goal=goals.find(g=>g.id===el.dataset.saveGoalComment);const input=root.querySelector(`[data-goal-comment="${el.dataset.saveGoalComment}"]`);if(goal&&input){goal.comment=input.value.trim();touchWeek();renderStats();renderGoals();toast('주간 목표 피드백을 저장했어요.');}}));
+    const addGoal=()=>{const input=$('goalInput');const value=input.value.trim();if(!value){toast('목표를 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.goals[type.id]))week.goals[type.id]=[];week.goals[type.id].push({id:uid(),text:value,done:false,comment:''});touchWeek();renderStats();renderGoals();$('goalInput').focus();};
+    $('addGoalButton').addEventListener('click',addGoal);$('goalInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addGoal();}});$('goalForm').addEventListener('submit',e=>e.preventDefault());
+  }
   function renderTasks() {
-    const root=$('taskContent'); const idx=selectedTaskSlot;
-    const type=idx===null?null:state.types.find(t=>t.id===currentWeek().slots[idx]);
+    const root=$('taskContent'), idx=selectedTaskSlot, week=currentWeek(), type=idx===null?null:state.types.find(t=>t.id===week.slots[idx]);
     if(idx===null||!type){root.innerHTML='<div class="task-empty">시간표에서 배정된 블럭을 선택하면 해당 블럭의 체크리스트를 관리할 수 있어요.</div>';return;}
-    const tasks=(currentWeek().tasks||{})[idx]||[]; const day=DAYS[idx%7]; const block=Math.floor(idx/7)+1;
-    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(block).padStart(2,'0')} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label><button class="task-comment-toggle" type="button" data-edit-task="${t.id}">내용 수정</button><button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}">피드백</button><button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-text-editor" data-text-editor="${t.id}" hidden><input data-task-text="${t.id}" maxlength="120" value="${escapeHtml(t.text)}" aria-label="할 일 내용 수정"><button class="btn primary" type="button" data-save-task-text="${t.id}">저장</button><button class="btn" type="button" data-cancel-task-text="${t.id}">취소</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}</div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn primary" type="button" data-save-comment="${t.id}">저장</button><button class="btn" type="button" data-cancel-comment="${t.id}">취소</button></div></div>`).join(''):'<div class="task-empty">이 블럭에 등록한 할 일이 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="이 블럭에서 할 일 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`;
-    root.querySelectorAll('[data-edit-task]').forEach(el=>el.addEventListener('click',()=>{const editor=root.querySelector(`[data-text-editor="${el.dataset.editTask}"]`);editor.hidden=false;editor.querySelector('input').focus();}));
-    root.querySelectorAll('[data-cancel-task-text]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.cancelTaskText;const task=tasks.find(t=>t.id===id);const editor=root.querySelector(`[data-text-editor="${id}"]`);if(task&&editor){editor.querySelector('input').value=task.text;editor.hidden=true;}}));
-    root.querySelectorAll('[data-save-task-text]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.saveTaskText;const task=tasks.find(t=>t.id===id);const input=root.querySelector(`[data-task-text="${id}"]`);const value=input.value.trim();if(!value){toast('할 일 내용을 입력해 주세요.');input.focus();return;}if(task){task.text=value;touchWeek();renderAll();$('taskModal').classList.add('open');toast('할 일 내용을 수정했어요.');}}));
-    root.querySelectorAll('[data-toggle-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-feedback-panel="${el.dataset.toggleComment}"]`);panel.hidden=!panel.hidden;if(!panel.hidden)panel.querySelector('textarea').focus();}));
-    root.querySelectorAll('[data-cancel-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.cancelComment;const task=tasks.find(t=>t.id===id);const panel=root.querySelector(`[data-feedback-panel="${id}"]`);if(task&&panel){panel.querySelector('textarea').value=task.comment||'';panel.hidden=true;}}));
-    root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const task=tasks.find(t=>t.id===el.dataset.taskCheck);if(task)task.done=el.checked;touchWeek();renderAll();}));
-    root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().tasks[idx]=tasks.filter(t=>t.id!==el.dataset.taskDelete);touchWeek();renderAll();}));
-    root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveComment);const input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(task&&input){task.comment=input.value.trim();touchWeek();renderAll();$('taskModal').classList.add('open');toast('피드백을 저장했어요.');}}));
-    const addTask=()=>{const input=$('taskInput');const taskText=input.value.trim();if(!taskText){toast('할 일을 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.tasks[idx]))week.tasks[idx]=[];week.tasks[idx].push({id:uid(),text:taskText,done:false,comment:''});touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();};
+    const indices=groupIndices(idx), tasks=groupTasks(idx), day=DAYS[idx%7], first=Math.floor(indices[0]/7)+1,last=Math.floor(indices[indices.length-1]/7)+1, goals=(week.goals||{})[type.id]||[];
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(first).padStart(2,'0')}${last!==first?'–'+String(last).padStart(2,'0'):''} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-section-title">주간 상위 투두</div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-entry"><div class="task-row ${g.done?'done':''}"><input type="checkbox" data-parent-check="${g.id}" ${g.done?'checked':''} aria-label="주간 목표 완료"><label>${escapeHtml(g.text)}</label></div></div>`).join(''):'<div class="task-empty">등록된 주간 목표가 없어요.</div>'}</div><div class="task-section-title" style="margin-top:14px">하위 투두</div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label>${t.comment?`<button class="task-comment-toggle" type="button" data-edit-comment="${t.id}">수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}">피드백</button>`}<button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}<button type="button" data-edit-comment="${t.id}">수정</button></div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이 블럭 묶음에 등록한 하위 투두가 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="하위 투두 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`;
+    root.querySelectorAll('[data-parent-check]').forEach(el=>el.addEventListener('change',()=>{const g=goals.find(x=>x.id===el.dataset.parentCheck);if(g)g.done=el.checked;touchWeek();renderStats();renderTasks();}));
+    root.querySelectorAll('[data-toggle-comment],[data-edit-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.toggleComment||el.dataset.editComment,panel=root.querySelector(`[data-feedback-panel="${id}"]`),display=root.querySelector(`[data-comment-display="${id}"]`);if(panel){panel.hidden=false;if(display)display.hidden=true;panel.querySelector('textarea').focus();}}));
+    root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const t=tasks.find(x=>x.id===el.dataset.taskCheck);if(t)t.done=el.checked;saveGroupTasks(idx,tasks);touchWeek();renderAll();}));
+    root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{saveGroupTasks(idx,tasks.filter(t=>t.id!==el.dataset.taskDelete));touchWeek();renderAll();}));
+    root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const t=tasks.find(x=>x.id===el.dataset.saveComment),input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(t&&input){t.comment=input.value.trim();saveGroupTasks(idx,tasks);touchWeek();renderAll();toast('피드백을 저장했어요.');}}));
+    const addTask=()=>{const input=$('taskInput'),value=input.value.trim();if(!value){toast('할 일을 입력해 주세요.');input.focus();return;}tasks.push({id:uid(),text:value,done:false,comment:''});saveGroupTasks(idx,tasks);touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();};
     $('addTaskButton').addEventListener('click',addTask);$('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});$('taskForm').addEventListener('submit',e=>e.preventDefault());
   }
   function renderHistory() {
-    const entries=Object.keys(state.weeks).filter(key=>{const w=state.weeks[key];return (w.slots||[]).some(Boolean)||Object.values(w.tasks||{}).some(tasks=>Array.isArray(tasks)&&tasks.length>0);}).sort((a,b)=>b.localeCompare(a));
+    const entries=Object.keys(state.weeks).filter(key=>{const w=state.weeks[key];return (w.slots||[]).some(Boolean)||Object.values(w.tasks||{}).some(tasks=>Array.isArray(tasks)&&tasks.length>0)||Object.values(w.goals||{}).some(goals=>Array.isArray(goals)&&goals.length>0);}).sort((a,b)=>b.localeCompare(a));
     if(!entries.length){$('historyList').innerHTML='<div class="empty-history">아직 기록이 없어요.<br>블럭을 배정하거나 할 일을 추가하면 자동으로 기록돼요.</div>';return;}
     $('historyList').innerHTML=entries.slice(0,8).map(key=>{
       const w=state.weeks[key]; const count=(w.slots||[]).filter(Boolean).length; const isCurrent=key===state.currentWeek;
@@ -377,12 +545,11 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
     $('historyList').querySelectorAll('[data-open-week]').forEach(b=>b.addEventListener('click',()=>{state.currentWeek=b.dataset.openWeek;ensureWeek(state.currentWeek);persist();renderAll();toast('주간 기록을 열었어요.');}));
   }
   function renderAll() { $('weekLabel').textContent=weekLabel(state.currentWeek); renderGrid(); renderTypes(); renderStats(); renderHistory(); renderTasks(); }
-  function startEdit(id) { const t=state.types.find(x=>x.id===id); if(!t)return; editingTypeId=id; chosenColor=t.color; $('typeName').value=t.name; $('addType').textContent='변경 저장'; $('cancelEdit').style.display='inline-block'; $('deleteType').style.display='inline-block'; openTypePopover(); renderPalette(); $('typeName').focus(); }
+  function startEdit(id) { const t=state.types.find(x=>x.id===id); if(!t)return; editingTypeId=id; chosenColor=t.color; $('typeName').value=t.name; $('addType').textContent='변경 저장'; $('cancelEdit').style.display='inline-block'; openTypePopover(); renderPalette(); $('typeName').focus(); }
   function openTypePopover() { $('typeCreatePopover').hidden=false; $('toggleAddType').setAttribute('aria-expanded','true'); }
   function closeTypePopover() { $('typeCreatePopover').hidden=true; $('toggleAddType').setAttribute('aria-expanded','false'); }
-  function cancelEdit() { editingTypeId=null; $('typeName').value=''; $('addType').textContent='+ 블럭 종류 추가'; $('cancelEdit').style.display='none'; $('deleteType').style.display='none'; closeTypePopover(); renderPalette(); }
-  $('toggleAddType').addEventListener('click',()=>{if(!$('typeCreatePopover').hidden){closeTypePopover();return;}editingTypeId=null;$('typeName').value='';$('addType').textContent='+ 블럭 종류 추가';$('cancelEdit').style.display='none';$('deleteType').style.display='none';openTypePopover();renderPalette();$('typeName').focus();});
-  $('deleteType').addEventListener('click',()=>{const id=editingTypeId;const type=state.types.find(t=>t.id===id);if(!type)return;if(!confirm(`'${type.name}' 블럭을 삭제할까요? 배정된 시간표 칸과 해당 칸의 할 일도 삭제됩니다.`))return;state.types=state.types.filter(t=>t.id!==id);for(const week of Object.values(state.weeks)){(week.slots||[]).forEach((slot,i)=>{if(slot===id){week.slots[i]=null;if(week.tasks)delete week.tasks[i];}});if(week.goals)delete week.goals[id];}if(selectedTypeId===id)selectedTypeId=null;if(selectedTaskSlot!==null&&!currentWeek().slots[selectedTaskSlot])selectedTaskSlot=null;cancelEdit();persist();renderAll();toast('블럭 종류를 삭제했어요.');});
+  function cancelEdit() { editingTypeId=null; $('typeName').value=''; $('addType').textContent='+ 블럭 종류 추가'; $('cancelEdit').style.display='none'; closeTypePopover(); renderPalette(); }
+  $('toggleAddType').addEventListener('click',()=>{if(!$('typeCreatePopover').hidden){closeTypePopover();return;}editingTypeId=null;$('typeName').value='';$('addType').textContent='+ 블럭 종류 추가';$('cancelEdit').style.display='none';openTypePopover();renderPalette();$('typeName').focus();});
   $('addType').addEventListener('click',()=>{
     const name=$('typeName').value.trim(); if(!name){toast('블럭 이름을 입력해 주세요.');$('typeName').focus();return;}
     if(editingTypeId){const t=state.types.find(t=>t.id===editingTypeId);if(t){t.name=name;t.color=chosenColor;} cancelEdit(); toast('블럭 종류를 수정했어요.');}
@@ -405,7 +572,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   $('goalModalClose').addEventListener('click',()=>$('goalModal').classList.remove('open'));
   $('goalModal').addEventListener('click',e=>{if(e.target===$('goalModal'))$('goalModal').classList.remove('open');});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('taskModal').classList.remove('open');$('goalModal').classList.remove('open');}});
-  try { const saved=localStorage.getItem(STORAGE_KEY); if(saved){const parsed=JSON.parse(saved);if(parsed&&Array.isArray(parsed.types)&&parsed.weeks){state={...state,...parsed};}} } catch(e) { /* start with an empty plan if storage is unavailable */ }
+  // 테스트용 기존 localStorage 데이터는 가져오지 않고 새 시간표로 시작합니다.
   ensureWeek(state.currentWeek);
   renderPalette();renderAll();
 })();
