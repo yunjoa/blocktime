@@ -848,6 +848,20 @@ opacity:1;
     background: var(--surface-soft);
     color: var(--text);
 }
+.type-delete {
+    border: 0;
+    background: transparent;
+    color: #c16b6b;
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+.type-delete:hover {
+    background: #fff0f0;
+    color: #b42323;
+}
 .type-empty {
     padding: 8px 2px 12px;
     color: var(--muted);
@@ -1071,7 +1085,7 @@ h2 {
 }
 .side .type-panel {
     order: 1;
-    overflow:visible;
+    overflow: visible;
 }
 .side .history-panel {
     order: 2;
@@ -1599,25 +1613,74 @@ const googleProvider = new GoogleAuthProvider();
   function weekRange(key) { const start = new Date(key+'T12:00:00'); const end = addDays(start,6); return {start,end}; }
   function weekLabel(key) { const {start,end}=weekRange(key); return `${fmtDate(start,true)} — ${fmtDate(end, start.getFullYear()!==end.getFullYear())}`; }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function renderPalette() {
-    const choices = [...new Set([...(chosenColor && !paletteChoices.includes(chosenColor) ? [chosenColor] : []), ...paletteChoices])].slice(0,11);
-    $('palette').innerHTML = choices.map(c=>`<button class="color-choice ${c===chosenColor?'selected':''}" type="button" data-color="${c}" aria-label="색상 ${c}" aria-pressed="${c===chosenColor}" style="background:${c}"></button>`).join('') + '<button class="color-choice custom-color" id="openCustomColor" type="button" aria-label="직접 색상 고르기" title="직접 색상 고르기">+</button>';
-    $('palette').querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{chosenColor=b.dataset.color;renderPalette();}));
-    $('openCustomColor').addEventListener('click',()=>$('customColorInput').click());
-  }
-  $('customColorInput').addEventListener('input',e=>{
-    chosenColor=e.target.value.toUpperCase();
-    paletteChoices=[chosenColor,...paletteChoices.filter(c=>c!==chosenColor)].slice(0,11);
-    renderPalette();
+ function renderPalette() {
+  const colors = [
+    chosenColor,
+    ...paletteChoices.filter(c => c !== chosenColor)
+  ].slice(0, 11);
+
+  $('palette').innerHTML = colors.map(c=>`
+    <button
+      class="color-choice ${c===chosenColor?'selected':''}"
+      type="button"
+      data-color="${c}"
+      aria-label="색상 ${c}"
+      aria-pressed="${c===chosenColor}"
+      style="background:${c}">
+    </button>
+  `).join('') + `
+    <button
+      class="color-choice custom-color"
+      type="button"
+      id="openCustomColor"
+      aria-label="직접 색상 선택"
+      title="직접 색상 선택"
+    >＋</button>
+  `;
+
+  $('palette').querySelectorAll('[data-color]').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      chosenColor=b.dataset.color;
+      renderPalette();
+    });
   });
-  function renderTypes() {
+
+  $('openCustomColor').addEventListener('click',()=>{
+    const picker=$('customColorInput');
+    picker.value=chosenColor;
+    if(picker.showPicker) picker.showPicker();
+    else picker.click();
+  });
+}
+
+// 컬러픽커에서 색상을 선택했을 때 적용
+$('customColorInput').addEventListener('input', e => {
+  chosenColor = e.target.value.toUpperCase();
+
+  paletteChoices = [
+    chosenColor,
+    ...paletteChoices.filter(c => c !== chosenColor)
+  ].slice(0, 11);
+
+  renderPalette();
+});
+
+function renderTypes() {
     const list=$('typeList');
     const moreButton=$('toggleMoreTypes');
     if (!state.types.length) { list.innerHTML='<div class="type-empty">아직 블럭 종류가 없어요.<br>위에서 이름과 색을 정해 추가해 주세요.</div>'; moreButton.hidden=true; return; }
     const sorted=state.types.map(t=>({type:t,count:currentWeek().slots.filter(s=>s===t.id).length})).sort((a,b)=>b.count-a.count||state.types.indexOf(a.type)-state.types.indexOf(b.type));
     const visible=showAllTypes?sorted:sorted.slice(0,10);
     list.innerHTML=visible.map(({type:t,count})=>{
-      return `<div class="type-item" draggable="true" data-type="${t.id}" title="클릭해서 선택하거나 시간표로 끌어 놓으세요."><span class="type-dot" style="background:${t.color}"></span><span class="type-name">${escapeHtml(t.name)}</span><span class="type-count">${count}칸</span><button class="type-edit" data-edit="${t.id}" aria-label="${escapeHtml(t.name)} 수정">···</button></div>`;
+   return `<div class="type-item" draggable="true" data-type="${t.id}" title="클릭해서 선택하거나 시간표로 끌어 놓으세요.">
+  <span class="type-dot" style="background:${t.color}"></span>
+  <span class="type-name">${escapeHtml(t.name)}</span>
+  <span class="type-count">${count}칸</span>
+  <button class="type-edit" data-edit="${t.id}" aria-label="${escapeHtml(t.name)} 수정">···</button>
+  <button class="type-delete" data-delete-type="${t.id}" aria-label="${escapeHtml(t.name)} 삭제">×</button>
+</div>`;
     }).join('');
     moreButton.hidden=sorted.length<=10;
     moreButton.textContent=showAllTypes?'접기 ↑':`나머지 블럭 ${sorted.length-10}개 더보기 ↓`;
@@ -1626,6 +1689,35 @@ const googleProvider = new GoogleAuthProvider();
       el.addEventListener('dragstart',e=>{dragData={typeId:el.dataset.type, fromSlot:null}; e.dataTransfer.setData('text/plain',JSON.stringify(dragData)); e.dataTransfer.effectAllowed='copy';});
     });
     list.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();startEdit(b.dataset.edit);}));
+      list.querySelectorAll('[data-delete-type]').forEach(b=>{
+  b.addEventListener('click',e=>{
+    e.stopPropagation();
+    const id=b.dataset.deleteType;
+    const type=state.types.find(t=>t.id===id);
+    if(!type)return;
+
+    if(!confirm(`'${type.name}' 블럭을 삭제할까요?\n배정된 시간표와 해당 블럭의 목표도 함께 삭제됩니다.`))return;
+
+    state.types=state.types.filter(t=>t.id!==id);
+
+    Object.values(state.weeks).forEach(w=>{
+      (w.slots||[]).forEach((slot,i)=>{
+        if(slot===id){
+          w.slots[i]=null;
+          delete w.tasks[i];
+        }
+      });
+      if(w.goals) delete w.goals[id];
+    });
+
+    if(selectedTypeId===id) selectedTypeId=null;
+    if(editingTypeId===id) cancelEdit();
+
+    persist();
+    renderAll();
+    toast('블럭 종류를 삭제했어요.');
+  });
+});
     list.querySelectorAll('[data-type]').forEach(el=>el.style.outline=el.dataset.type===selectedTypeId?'2px solid var(--site-primary)':'none');
   }
   $('toggleMoreTypes').addEventListener('click',()=>{showAllTypes=!showAllTypes;renderTypes();});
@@ -1731,12 +1823,45 @@ const googleProvider = new GoogleAuthProvider();
   function closeTypePopover() { $('typeCreatePopover').hidden=true; $('toggleAddType').setAttribute('aria-expanded','false'); }
   function cancelEdit() { editingTypeId=null; $('typeName').value=''; $('addType').textContent='블럭 추가'; $('cancelEdit').style.display='none'; closeTypePopover(); renderPalette(); }
   $('toggleAddType').addEventListener('click',()=>{if(!$('typeCreatePopover').hidden){closeTypePopover();return;}editingTypeId=null;$('typeName').value='';$('addType').textContent='블럭 추가';$('cancelEdit').style.display='none';paletteChoices=[...COLORS.slice(0,12)].sort(()=>Math.random()-.5).slice(0,11);openTypePopover();renderPalette();$('typeName').focus();});
-  $('addType').addEventListener('click',()=>{
-    const name=$('typeName').value.trim(); if(!name){toast('블럭 이름을 입력해 주세요.');$('typeName').focus();return;}
-    if(editingTypeId){const t=state.types.find(t=>t.id===editingTypeId);if(t){t.name=name;t.color=chosenColor;} cancelEdit(); toast('블럭 종류를 수정했어요.');}
-    else {const t={id:uid(),name,color:chosenColor};state.types.push(t);selectedTypeId=t.id;$('typeName').value='';closeTypePopover();toast('블럭 종류를 추가했어요. 빈 칸을 눌러 배정하세요.');}
-    persist();renderAll();
-  });
+ $('addType').addEventListener('click',()=>{
+  const name=$('typeName').value.trim();
+
+  if(!name){
+    toast('블럭 이름을 입력해 주세요.');
+    $('typeName').focus();
+    return;
+  }
+
+  if(editingTypeId){
+    const t=state.types.find(t=>t.id===editingTypeId);
+
+    if(t){
+      t.name=name;
+      t.color=chosenColor;
+    }
+
+    cancelEdit();
+    toast('블럭 종류를 수정했어요.');
+  }
+
+
+  else {
+    const t={
+      id:uid(),
+      name:name,
+      color:chosenColor
+    };
+
+    state.types.push(t);
+    selectedTypeId=t.id;
+    $('typeName').value='';
+    closeTypePopover();
+    toast('블럭 종류를 추가했어요. 빈 칸을 눌러 배정하세요.');
+  }
+
+  persist();
+  renderAll();
+});
   $('typeName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('addType').click();}});
   $('cancelEdit').addEventListener('click',cancelEdit);
   $('closeTypePopover').addEventListener('click',()=>closeTypePopover());
