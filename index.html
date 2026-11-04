@@ -1821,7 +1821,25 @@ function renderTypes() {
     }));
     root.querySelectorAll('[data-toggle-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-goal-feedback-panel="${el.dataset.toggleGoalComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();}));
     root.querySelectorAll('[data-edit-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editGoalComment;const panel=root.querySelector(`[data-goal-feedback-panel="${id}"]`),display=root.querySelector(`[data-goal-comment-display="${id}"]`);if(panel){panel.hidden=false;if(display)display.hidden=true;panel.querySelector('textarea').focus();}}));
-    root.querySelectorAll('[data-goal-check]').forEach(el=>el.addEventListener('change',()=>{const goal=goals.find(g=>g.id===el.dataset.goalCheck);if(goal)goal.done=el.checked;touchWeek();renderStats();renderGoals();}));
+   root.querySelectorAll('[data-goal-check]').forEach(el=>el.addEventListener('change',()=>{
+  const goal = goals.find(g => g.id === el.dataset.goalCheck);
+  if (!goal) return;
+
+  goal.done = el.checked;
+
+  touchWeek();
+  renderStats();
+
+  // 체크한 항목의 완료 표시만 갱신
+  const row = el.closest('.task-row');
+  row.classList.toggle('done', goal.done);
+
+  // 상단 완료 개수 갱신
+  const count = root.querySelector('.task-heading > span');
+  if (count) {
+    count.textContent = `${goals.filter(g => g.done).length}/${goals.length}개 완료`;
+  }
+}));
     root.querySelectorAll('[data-goal-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().goals[type.id]=goals.filter(g=>g.id!==el.dataset.goalDelete);touchWeek();renderStats();renderGoals();}));
     root.querySelectorAll('[data-save-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const goal=goals.find(g=>g.id===el.dataset.saveGoalComment),input=root.querySelector(`[data-goal-comment="${el.dataset.saveGoalComment}"]`);if(goal&&input){goal.comment=input.value.trim();touchWeek();renderStats();renderGoals();toast('주간 목표 피드백을 저장했어요.');}}));
     const addGoal=()=>{const input=$('goalInput'),value=input.value.trim();if(!value){toast('목표를 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.goals[type.id]))week.goals[type.id]=[];week.goals[type.id].push({id:uid(),text:value,done:false,comment:''});touchWeek();renderStats();renderGoals();$('goalInput').focus();};
