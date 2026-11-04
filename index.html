@@ -1336,7 +1336,7 @@ h2 {
       <button class="btn primary" id="googleLogin" type="button">Google 로그인</button>
       <button class="btn ghost" id="googleLogout" type="button" hidden>로그아웃</button>
       <button class="btn ghost" id="copyPrev">지난주 계획 복사</button>
-      <button class="btn ghost" id="clearWeek">이번 주 비우기</button>
+      <button class="btn ghost" id="clearWeek">이 주 비우기</button>
       <span class="auth-status" id="authStatus" role="status">로그인하면 기기 간 동기화가 시작돼요.</span> </div>
   </header>
   <main>
@@ -1936,8 +1936,23 @@ function renderTypes() {
   $('prevWeek').addEventListener('click',()=>{state.currentWeek=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),-7));ensureWeek(state.currentWeek);persist();renderAll();});
   $('nextWeek').addEventListener('click',()=>{state.currentWeek=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),7));ensureWeek(state.currentWeek);persist();renderAll();});
   $('thisWeek').addEventListener('click',()=>{state.currentWeek=weekKey(new Date());ensureWeek(state.currentWeek);persist();renderAll();});
-  $('copyPrev').addEventListener('click',()=>{const prev=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),-7));if(!state.weeks[prev]){toast('복사할 지난주 기록이 없어요.');return;}state.weeks[state.currentWeek]={slots:clone(state.weeks[prev].slots),tasks:clone(state.weeks[prev].tasks||{}),goals:clone(state.weeks[prev].goals||{}),updatedAt:new Date().toISOString()};persist();renderAll();toast('지난주 계획을 복사했어요.');});
-  $('clearWeek').addEventListener('click',()=>openConfirm(()=>{currentWeek().slots=Array(42).fill(null);currentWeek().tasks={};currentWeek().goals={};selectedTaskSlot=null;touchWeek();renderAll();toast('이번 주 시간표와 목표를 비웠어요.');}));
+  
+$('copyPrev').addEventListener('click',()=>{const prev=dateKey(addDays(new Date(state.currentWeek+'T12:00:00'),-7));if(!state.weeks[prev]){toast('복사할 지난주 기록이 없어요.');return;}state.weeks[state.currentWeek]={slots:clone(state.weeks[prev].slots),tasks:{},goals:{},updatedAt:new Date().toISOString()};selectedTaskSlot=null;persist();renderAll();toast('지난주 블럭 배정을 복사했어요.');});
+  $('clearWeek').addEventListener('click',()=>{
+  const targetKey=state.currentWeek;
+  $('modalTitle').textContent=`${weekLabel(targetKey)} 주를 비울까요?`;
+  $('modalText').textContent='지금 보고 있는 주의 시간표, 주간 목표, 하위 투두가 모두 지워집니다. 다른 주의 기록은 유지됩니다.';
+  openConfirm(()=>{
+    const w=ensureWeek(targetKey);
+    w.slots=Array(42).fill(null);
+    w.tasks={};
+    w.goals={};
+    selectedTaskSlot=null;
+    touchWeek();
+    renderAll();
+    toast(`${weekLabel(targetKey)} 주를 비웠어요.`);
+  });
+});
   function openConfirm(fn){pendingConfirm=fn;$('confirmModal').classList.add('open');}
   $('modalCancel').addEventListener('click',()=>{$('confirmModal').classList.remove('open');pendingConfirm=null;});
   $('modalConfirm').addEventListener('click',()=>{$('confirmModal').classList.remove('open');if(pendingConfirm)pendingConfirm();pendingConfirm=null;});
