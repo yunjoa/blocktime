@@ -760,25 +760,55 @@ opacity:1;
     font-size: 13px;
     font-weight: 900;
 }
-.color-choice.custom-color {
+.custom-color-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    min-width: 0;
+}
+
+.color-choice.custom-color-swatch {
     display: grid;
     place-items: center;
-    background: var(--surface-soft) !important;
+    width: 100%;
+    height: 100%;
+    background: var(--surface-soft);
     border: 1px dashed var(--muted);
-    color: var(--text);
-    font-size: 22px;
-    font-weight: 400;
 }
-.color-choice.custom-color::after {
+
+.color-choice.custom-color-swatch::after {
     content: none;
 }
-#customColorInput {
+
+.custom-color-plus {
     position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #26302a;
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 500;
     pointer-events: none;
+    text-shadow: 0 1px 2px #ffffffaa;
 }
+
+.custom-color-input {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    opacity: 0.01;
+    cursor: pointer;
+    z-index: 5;
+    pointer-events: auto;
+}
+
 .add-row {
     display: flex;
     gap: 8px;
@@ -1336,7 +1366,7 @@ h2 {
         <div class="panel-head">
           <div>
             <h3>주간 블럭 시간표</h3>
-            <p>빈 칸을 누르면 선택한 블럭이 들어가요 · 끌어서 옮길 수도 있어요</p>
+           
           </div>
         </div>
         <div class="grid-scroll">
@@ -1349,7 +1379,6 @@ h2 {
           <div class="panel-head">
             <div>
               <h3>내 블럭</h3>
-              <p>이번 주에 많이 쓰는 블럭부터 보여요.</p>
             </div>
             <button class="btn primary" id="toggleAddType" type="button">+ 블럭 추가</button>
           </div>
@@ -1358,7 +1387,7 @@ h2 {
             <input class="name-input" id="typeName" maxlength="24" placeholder="예: 공부, 운동, 휴식" autocomplete="off">
             <div class="field-label" style="margin-top:14px">색상</div>
             <div class="palette" id="palette"></div>
-            <input id="customColorInput" type="color" value="#B8D4F8" aria-label="사용자 지정 색상 선택">
+            
             <div class="add-row">
               <button class="btn primary" id="addType">블럭 추가</button>
               <button class="btn" id="cancelEdit" style="display:none">취소</button>
@@ -1439,7 +1468,10 @@ const googleProvider = new GoogleAuthProvider();
   const DAYS = ['월','화','수','목','금','토','일'];
   const STORAGE_KEY = 'block-planner-prototype-v1';
   let chosenColor = COLORS[0];
-  let paletteChoices = [...COLORS.slice(0,12)].sort(()=>Math.random()-.5).slice(0,11);
+let customColor = null;
+let selectedCustomColor = false;
+
+let paletteChoices = [...COLORS.slice(0,12)].sort(()=>Math.random()-.5).slice(0,11);
   let selectedTypeId = null;
   let selectedTaskSlot = null;
   let selectedGoalTypeId = null;
@@ -1613,59 +1645,75 @@ const googleProvider = new GoogleAuthProvider();
   function weekRange(key) { const start = new Date(key+'T12:00:00'); const end = addDays(start,6); return {start,end}; }
   function weekLabel(key) { const {start,end}=weekRange(key); return `${fmtDate(start,true)} — ${fmtDate(end, start.getFullYear()!==end.getFullYear())}`; }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
- function renderPalette() {
-  const colors = [
-    chosenColor,
-    ...paletteChoices.filter(c => c !== chosenColor)
-  ].slice(0, 11);
-
-  $('palette').innerHTML = colors.map(c=>`
+function renderPalette() {
+  
+  $('palette').innerHTML = paletteChoices.map(c => `
     <button
-      class="color-choice ${c===chosenColor?'selected':''}"
+      class="color-choice ${!selectedCustomColor && c === chosenColor ? 'selected' : ''}"
       type="button"
       data-color="${c}"
       aria-label="색상 ${c}"
-      aria-pressed="${c===chosenColor}"
+      aria-pressed="${!selectedCustomColor && c === chosenColor}"
       style="background:${c}">
     </button>
   `).join('') + `
-    <button
-      class="color-choice custom-color"
-      type="button"
-      id="openCustomColor"
-      aria-label="직접 색상 선택"
-      title="직접 색상 선택"
-    >＋</button>
+    <div class="custom-color-wrap">
+
+      <button
+        class="color-choice custom-color-swatch ${selectedCustomColor ? 'selected' : ''}"
+        type="button"
+        id="selectCustomColor"
+        aria-label="사용자 지정 색상 선택"
+        aria-pressed="${selectedCustomColor}"
+        style="background:${customColor || 'var(--surface-soft)'}">
+      </button>
+
+      <span class="custom-color-plus" aria-hidden="true">＋</span>
+
+      <input
+        id="customColorInput"
+        class="custom-color-input"
+        type="color"
+        value="${customColor || chosenColor}"
+        aria-label="직접 색상 선택"
+      >
+
+    </div>
   `;
 
-  $('palette').querySelectorAll('[data-color]').forEach(b=>{
-    b.addEventListener('click',e=>{
+  // 기본 팔레트 색상 선택
+  $('palette').querySelectorAll('[data-color]').forEach(b => {
+    b.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
-      chosenColor=b.dataset.color;
+
+      chosenColor = b.dataset.color;
+      selectedCustomColor = false;
+
       renderPalette();
     });
   });
 
-  $('openCustomColor').addEventListener('click',()=>{
-    const picker=$('customColorInput');
-    picker.value=chosenColor;
-    if(picker.showPicker) picker.showPicker();
-    else picker.click();
+  // 사용자 지정 색상 슬롯 선택
+  $('selectCustomColor').addEventListener('click', () => {
+    if (!customColor) return;
+
+    chosenColor = customColor;
+    selectedCustomColor = true;
+
+    renderPalette();
   });
-}
 
-// 컬러픽커에서 색상을 선택했을 때 적용
-$('customColorInput').addEventListener('input', e => {
-  chosenColor = e.target.value.toUpperCase();
-
-  paletteChoices = [
-    chosenColor,
-    ...paletteChoices.filter(c => c !== chosenColor)
-  ].slice(0, 11);
+  // 컬러픽커에서 색상 변경
+$('customColorInput').addEventListener('change', e => {
+  customColor = e.target.value.toUpperCase();
+  chosenColor = customColor;
+  selectedCustomColor = true;
 
   renderPalette();
 });
+}
+
 
 function renderTypes() {
     const list=$('typeList');
@@ -1786,7 +1834,7 @@ function renderTypes() {
     const childTasks=tasks.filter(t=>t.parentId&&goals.some(g=>g.id===t.parentId));
     const done=childTasks.filter(t=>t.done).length;
     const childMarkup=t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="하위 투두 완료"><label>${escapeHtml(t.text)}</label><button class="task-comment-toggle" type="button" data-task-edit="${t.id}">수정</button><button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}">${t.comment?'피드백 수정':'피드백'}</button><button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="하위 투두 삭제">×</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}</div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">저장</button></div></div>`;
-    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(first).padStart(2,'0')}${last!==first?'–'+String(last).padStart(2,'0'):''} · ${escapeHtml(type.name)}</strong><span>${done}/${childTasks.length}개 완료</span></div><div class="task-section-title">주간 상위 투두</div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-entry"><div class="task-row"><label>${escapeHtml(g.text)}</label><button class="goal-icon-button" type="button" data-add-child="${g.id}" aria-label="${escapeHtml(g.text)} 하위 투두 추가" title="하위 투두 추가">+</button></div><div class="task-list" style="margin:4px 0 10px 18px" data-children-for="${g.id}">${childTasks.filter(t=>t.parentId===g.id).map(childMarkup).join('')||'<div class="task-empty">하위 투두 없음</div>'}</div></div>`).join(''):'<div class="task-empty">등록된 주간 목표가 없어요. 주간 배정 현황 카드에서 먼저 추가해 주세요.</div>'}</div>`;
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(first).padStart(2,'0')}${last!==first?'–'+String(last).padStart(2,'0'):''} · ${escapeHtml(type.name)}</strong><span>${done}/${childTasks.length}개 완료</span></div><div class="task-section-title">주간 상위 투두</div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-entry"><div class="task-row"><label>${escapeHtml(g.text)}</label><button class="goal-icon-button" type="button" data-add-child="${g.id}" aria-label="${escapeHtml(g.text)} 하위 투두 추가" title="하위 투두 추가">+</button></div><div class="task-list" style="margin:4px 0 10px 18px" data-children-for="${g.id}">${childTasks.filter(t=>t.parentId===g.id).map(childMarkup).join('')}</div></div>`).join(''):'<div class="task-empty">등록된 주간 목표가 없어요. 주간 배정 현황 카드에서 먼저 추가해 주세요.</div>'}</div>`;
     root.querySelectorAll('[data-add-child]').forEach(el=>el.addEventListener('click',()=>{
       const goalId=el.dataset.addChild, container=root.querySelector(`[data-children-for="${goalId}"]`);
       if(container.querySelector('[data-child-input]')){container.querySelector('[data-child-input]').focus();return;}
